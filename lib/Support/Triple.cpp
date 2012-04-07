@@ -21,7 +21,7 @@ const char *Triple::getArchTypeName(ArchType Kind) {
 
   case arm:     return "arm";
   case cellspu: return "cellspu";
-  case dcpu16:  return "dcpu16";cell
+  case dcpu16:  return "dcpu16";
   case hexagon: return "hexagon";
   case mips:    return "mips";
   case mipsel:  return "mipsel";

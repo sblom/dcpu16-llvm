@@ -29,9 +29,8 @@ Dcpu16TargetMachine::Dcpu16TargetMachine(const Target &T, StringRef TT,
                                        const TargetOptions &Options,
                                        Reloc::Model RM, CodeModel::Model CM,
                                        CodeGenOpt::Level OL)
-  : LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
-    TLInfo(*this), TSInfo(*this), InstrInfo(),
-    FrameLowering() {
+  : LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL)
+{
 }
 
 namespace {
@@ -57,37 +56,4 @@ TargetPassConfig *Dcpu16TargetMachine::createPassConfig(PassManagerBase &PM) {
 bool Dcpu16PassConfig::addInstSelector() {
   PM.add(createDcpu16ISelDag(getDcpu16TargetMachine()));
   return false;
-}
-
-/// addPreEmitPass - This pass may be implemented by targets that want to run
-/// passes immediately before machine code is emitted.  This should return
-/// true if -print-machineinstrs should print out the code after the passes.
-bool Dcpu16PassConfig::addPreEmitPass(){
-  PM.add(createDcpu16FPMoverPass(getDcpu16TargetMachine()));
-  PM.add(createDcpu16DelaySlotFillerPass(getDcpu16TargetMachine()));
-  return true;
-}
-
-void Dcpu16V8TargetMachine::anchor() { }
-
-Dcpu16V8TargetMachine::Dcpu16V8TargetMachine(const Target &T,
-                                           StringRef TT, StringRef CPU,
-                                           StringRef FS,
-                                           const TargetOptions &Options,
-                                           Reloc::Model RM,
-                                           CodeModel::Model CM,
-                                           CodeGenOpt::Level OL)
-  : Dcpu16TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, false) {
-}
-
-void Dcpu16V9TargetMachine::anchor() { }
-
-Dcpu16V9TargetMachine::Dcpu16V9TargetMachine(const Target &T,
-                                           StringRef TT,  StringRef CPU,
-                                           StringRef FS,
-                                           const TargetOptions &Options,
-                                           Reloc::Model RM,
-                                           CodeModel::Model CM,
-                                           CodeGenOpt::Level OL)
-  : Dcpu16TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, true) {
 }

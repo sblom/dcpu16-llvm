@@ -27,20 +27,32 @@ def : Proc<"generic",         []>;
 // Register File Description
 //===----------------------------------------------------------------------===//
 
-include "Dcpu16RegisterInfo.td"
+//include "Dcpu16RegisterInfo.td"
+
+def A : Register<"A">;
+
+def generic : RegisterClass<"generic", [i16], 0, (add A)>;
 
 //===----------------------------------------------------------------------===//
 // Calling Convention Description
 //===----------------------------------------------------------------------===//
 
-include "Dcpu16CallingConv.td"
+//include "Dcpu16CallingConv.td"
 
 //===----------------------------------------------------------------------===//
 // Instruction Descriptions
 //===----------------------------------------------------------------------===//
 
-include "Dcpu16InstrInfo.td"
+//include "Dcpu16InstrInfo.td"
 
+def ADD : Instruction{
+  dag OutOperandList = (outs generic:$src);
+  dag InOperandList  = (ins generic:$dst);
+
+  let AsmString   = "#ADJCALLSTACKDOWN";
+}
+
+				 
 def Dcpu16InstrInfo : InstrInfo;
 
 def Dcpu16InstPrinter : AsmWriter {
