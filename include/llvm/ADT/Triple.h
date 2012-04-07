@@ -45,6 +45,7 @@ public:
 
     arm,     // ARM; arm, armv.*, xscale
     cellspu, // CellSPU: spu, cellspu
+	dcpu16,  // DCPU-16: dcpu16
     hexagon, // Hexagon: hexagon
     mips,    // MIPS: mips, mipsallegrex
     mipsel,  // MIPSEL: mipsel, mipsallegrexel

@@ -7,14 +7,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "MSP430.h"
+#include "Dcpu16.h"
 #include "llvm/Module.h"
 #include "llvm/Support/TargetRegistry.h"
 using namespace llvm;
 
-Target llvm::TheMSP430Target;
+Target llvm::TheDcpu16Target;
 
-extern "C" void LLVMInitializeMSP430TargetInfo() { 
-  RegisterTarget<Triple::msp430> 
-    X(TheMSP430Target, "msp430", "MSP430 [experimental]");
+extern "C" void LLVMInitializeDcpu16TargetInfo() { 
+  RegisterTarget<Triple::dcpu16> 
+    X(TheDcpu16Target, "dcpu16", "DCPU-16 [from 0x10c.com]");
 }
