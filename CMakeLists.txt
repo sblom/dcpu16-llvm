@@ -74,6 +74,7 @@ set(LLVM_ALL_TARGETS
   ARM
   CellSPU
   CppBackend
+  Dcpu16
   Hexagon
   Mips
   MBlaze
