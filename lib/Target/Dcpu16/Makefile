@@ -12,11 +12,9 @@ LIBRARYNAME = LLVMDcpu16CodeGen
 TARGET = Dcpu16
 
 # Make sure that tblgen is run, first thing.
-BUILT_SOURCES = Dcpu16GenRegisterInfo.h.inc Dcpu16GenRegisterNames.inc \
-		Dcpu16GenRegisterInfo.inc Dcpu16GenInstrNames.inc \
-		Dcpu16GenInstrInfo.inc Dcpu16GenAsmWriter.inc \
-		Dcpu16GenDAGISel.inc Dcpu16GenCallingConv.inc \
-		Dcpu16GenSubtarget.inc
+BUILT_SOURCES = Dcpu16GenRegisterInfo.inc Dcpu16GenInstrInfo.inc \
+		Dcpu16GenAsmWriter.inc Dcpu16GenDAGISel.inc \
+		Dcpu16GenSubtargetInfo.inc Dcpu16GenCallingConv.inc
 
 DIRS = AsmPrinter TargetInfo
 
