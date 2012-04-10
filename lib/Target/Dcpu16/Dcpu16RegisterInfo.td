@@ -20,5 +20,5 @@ def O : Register<"O">, DwarfRegNum<[-1]>;
 // FIXME: the register order should be defined in terms of the preferred
 // allocation order...
 //
-def WritableRegs : RegisterClass<"DCPU", [i16], 16, [A, B, C, X, Y, Z, I, J]>;
-def ReadableRegs : RegisterClass<"DCPU", [i16], 16, [A, B, C, X, Y, Z, I, J, PC, SP, O]>;
+def WritableRegs : RegisterClass<"DCPU", [i16], 16, (add A, B, C, X, Y, Z, I, J)>;
+def ReadableRegs : RegisterClass<"DCPU", [i16], 16, (add A, B, C, X, Y, Z, I, J, PC, SP, O)>;
