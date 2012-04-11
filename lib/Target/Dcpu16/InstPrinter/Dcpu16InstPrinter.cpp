@@ -23,7 +23,7 @@ using namespace llvm;
 
 
 // Include the auto-generated portion of the assembly writer.
-#include "Dcpu16GenAsmWriter.inc"
+//#include "Dcpu16GenAsmWriter.inc"
 
 void Dcpu16InstPrinter::printInst(const MCInst *MI, raw_ostream &O,
                                   StringRef Annot) {

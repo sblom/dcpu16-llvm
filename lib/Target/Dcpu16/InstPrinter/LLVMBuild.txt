@@ -17,7 +17,7 @@
 
 [component_0]
 type = Library
-name = MSP430AsmPrinter
-parent = MSP430
+name = Dcpu16AsmPrinter
+parent = Dcpu16
 required_libraries = MC Support
-add_to_library_groups = MSP430
+add_to_library_groups = Dcpu16
