@@ -4,4 +4,4 @@ add_llvm_library(LLVMDcpu16AsmPrinter
   Dcpu16InstPrinter.cpp
   )
 
-#add_dependencies(LLVMDcpu16AsmPrinter MSP430CommonTableGen)
+add_dependencies(LLVMDcpu16AsmPrinter Dcpu16CommonTableGen)

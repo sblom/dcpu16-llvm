@@ -1,4 +1,4 @@
-;===- ./lib/Target/MSP430/InstPrinter/LLVMBuild.txt ------------*- Conf -*--===;
+;===- ./lib/Target/Dcpu16/InstPrinter/LLVMBuild.txt ------------*- Conf -*--===;
 ;
 ;                     The LLVM Compiler Infrastructure
 ;

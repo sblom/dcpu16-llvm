@@ -16,7 +16,7 @@
 ;===------------------------------------------------------------------------===;
 
 [common]
-subdirectories = TargetInfo
+subdirectories = TargetInfo InstPrinter MCTargetDesc
 
 [component_0]
 type = TargetGroup
