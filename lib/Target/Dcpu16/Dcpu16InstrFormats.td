@@ -1,5 +1,5 @@
 class InstDcpu<dag outs, dag ins, string asmstr, list<dag> pattern> : Instruction {
-  let Namespace = "Dcpu";
+  let Namespace = "Dcpu16";
   let OutOperandList = outs;
   let InOperandList = ins;
   let AsmString   = asmstr;

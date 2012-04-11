@@ -16,5 +16,5 @@ def SP : Register<"SP">, DwarfRegNum<[-1]>;
 def O : Register<"O">, DwarfRegNum<[-1]>;
 
 // Register classes.
-def WritableRegs : RegisterClass<"DCPU", [i16], 16, (add A, B, C, X, Y, Z, I, J)>;
-def ReadableRegs : RegisterClass<"DCPU", [i16], 16, (add A, B, C, X, Y, Z, I, J, PC, SP, O)>;
+def WritableRegs : RegisterClass<"Dcpu16", [i16], 16, (add A, B, C, X, Y, Z, I, J)>;
+def ReadableRegs : RegisterClass<"Dcpu16", [i16], 16, (add A, B, C, X, Y, Z, I, J, PC, SP, O)>;
