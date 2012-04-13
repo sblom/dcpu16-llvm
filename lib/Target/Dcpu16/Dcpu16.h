@@ -15,21 +15,13 @@
 #ifndef LLVM_TARGET_DCPU16_H
 #define LLVM_TARGET_DCPU16_H
 
+#include "MCTargetDesc/Dcpu16MCTargetDesc.h"
 #include "llvm/Target/TargetMachine.h"
 
-namespace Dcpu16CC {
-  // Dcpu16 specific condition code.
-  enum CondCodes {
-    COND_E  = 0,  // aka COND_Z
-    COND_NE = 1,  // aka COND_NZ
-    COND_HS = 2,  // aka COND_C
-    COND_LO = 3,  // aka COND_NC
-    COND_GE = 4,
-    COND_L  = 5,
+namespace llvm {
+class Target;
 
-    COND_INVALID = -1
-  };
-}
+extern Target TheDcpu16Target;
 
 namespace llvm {
   class Dcpu16TargetMachine;

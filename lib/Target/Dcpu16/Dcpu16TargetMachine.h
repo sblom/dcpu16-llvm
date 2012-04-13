@@ -14,6 +14,7 @@
 #ifndef DCPU16TARGETMACHINE_H
 #define DCPU16TARGETMACHINE_H
 
+#include "Dcpu16.h"
 #include "Dcpu16InstrInfo.h"
 // #include "Dcpu16ISelLowering.h"
 // #include "Dcpu16FrameLowering.h"
