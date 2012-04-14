@@ -1,4 +1,4 @@
-//===-- MSP430TargetInfo.cpp - MSP430 Target Implementation ---------------===//
+//===-- Dcpu16TargetInfo.cpp - Dcpu16 Target Implementation -----------------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -13,8 +13,8 @@
 using namespace llvm;
 
 Target llvm::TheDcpu16Target;
+Target llvm::TheDcpu16V9Target;
 
-extern "C" void LLVMInitializeDcpu16TargetInfo() { 
-  RegisterTarget<Triple::dcpu16> 
-    X(TheDcpu16Target, "dcpu16", "DCPU-16 [from 0x10c.com]");
+extern "C" void LLVMInitializeDcpu16TargetInfo() {
+  RegisterTarget<Triple::dcpu16> X(TheDcpu16Target, "dcpu16", "Dcpu16");
 }

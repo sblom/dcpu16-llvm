@@ -16,7 +16,7 @@ BUILT_SOURCES = Dcpu16GenRegisterInfo.inc Dcpu16GenInstrInfo.inc \
 		Dcpu16GenAsmWriter.inc Dcpu16GenDAGISel.inc \
 		Dcpu16GenSubtargetInfo.inc Dcpu16GenCallingConv.inc
 
-DIRS = AsmPrinter TargetInfo
+DIRS = TargetInfo MCTargetDesc
 
 include $(LEVEL)/Makefile.common
 

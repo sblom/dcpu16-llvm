@@ -1,4 +1,4 @@
-;===- ./lib/Target/MSP430/MCTargetDesc/LLVMBuild.txt -----------*- Conf -*--===;
+;===- ./lib/Target/Dcpu16/MCTargetDesc/LLVMBuild.txt ------------*- Conf -*--===;
 ;
 ;                     The LLVM Compiler Infrastructure
 ;
@@ -19,5 +19,5 @@
 type = Library
 name = Dcpu16Desc
 parent = Dcpu16
-required_libraries = MC Dcpu16AsmPrinter Dcpu16Info Support Target
+required_libraries = MC Dcpu16Info Support
 add_to_library_groups = Dcpu16

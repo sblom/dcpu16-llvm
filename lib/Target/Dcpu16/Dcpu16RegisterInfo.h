@@ -20,7 +20,17 @@
 #include "Dcpu16GenRegisterInfo.inc"
 
 namespace llvm {
+
+class Dcpu16Subtarget;
+class TargetInstrInfo;
+class Type;
+
 struct Dcpu16RegisterInfo : public Dcpu16GenRegisterInfo {
+  Dcpu16Subtarget &Subtarget;
+  const TargetInstrInfo &TII;
+
+  Dcpu16RegisterInfo(Dcpu16Subtarget &st, const TargetInstrInfo &tii);
+
   /// Code Generation virtual methods...
   const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
 
@@ -42,6 +52,7 @@ struct Dcpu16RegisterInfo : public Dcpu16GenRegisterInfo {
   unsigned getEHExceptionRegister() const;
   unsigned getEHHandlerRegister() const;
 };
+
 } // end namespace llvm
 
 #endif
