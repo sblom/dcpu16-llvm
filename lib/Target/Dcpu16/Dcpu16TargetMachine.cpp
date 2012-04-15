@@ -67,8 +67,6 @@ bool Dcpu16PassConfig::addInstSelector() {
 /// passes immediately before machine code is emitted.  This should return
 /// true if -print-machineinstrs should print out the code after the passes.
 bool Dcpu16PassConfig::addPreEmitPass(){
-  PM.add(createDcpu16FPMoverPass(getDcpu16TargetMachine()));
-  PM.add(createDcpu16DelaySlotFillerPass(getDcpu16TargetMachine()));
   return true;
 }
 

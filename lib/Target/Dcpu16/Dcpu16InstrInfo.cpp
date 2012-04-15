@@ -28,7 +28,7 @@
 using namespace llvm;
 
 Dcpu16InstrInfo::Dcpu16InstrInfo(Dcpu16Subtarget &ST)
-  : Dcpu16GenInstrInfo(DCPU16::ADJCALLSTACKDOWN, DCPU16::ADJCALLSTACKUP),
+  : Dcpu16GenInstrInfo(/*DCPU16::ADJCALLSTACKDOWN, DCPU16::ADJCALLSTACKUP*/),
     RI(ST, *this), Subtarget(ST) {
 }
 
@@ -39,9 +39,7 @@ Dcpu16InstrInfo::Dcpu16InstrInfo(Dcpu16Subtarget &ST)
 /// any side effects other than loading from the stack slot.
 unsigned Dcpu16InstrInfo::isLoadFromStackSlot(const MachineInstr *MI,
                                              int &FrameIndex) const {
-  if (MI->getOpcode() == DCPU16::LDri ||
-      MI->getOpcode() == DCPU16::LDFri ||
-      MI->getOpcode() == DCPU16::LDDFri) {
+  if (MI->getOpcode() == DCPU16::SETrmf) {
     if (MI->getOperand(1).isFI() && MI->getOperand(2).isImm() &&
         MI->getOperand(2).getImm() == 0) {
       FrameIndex = MI->getOperand(1).getIndex();
@@ -58,9 +56,7 @@ unsigned Dcpu16InstrInfo::isLoadFromStackSlot(const MachineInstr *MI,
 /// any side effects other than storing to the stack slot.
 unsigned Dcpu16InstrInfo::isStoreToStackSlot(const MachineInstr *MI,
                                             int &FrameIndex) const {
-  if (MI->getOpcode() == DCPU16::STri ||
-      MI->getOpcode() == DCPU16::STFri ||
-      MI->getOpcode() == DCPU16::STDFri) {
+  if (MI->getOpcode() == DCPU16::SETmfr) {
     if (MI->getOperand(0).isFI() && MI->getOperand(1).isImm() &&
         MI->getOperand(1).getImm() == 0) {
       FrameIndex = MI->getOperand(0).getIndex();
@@ -72,13 +68,14 @@ unsigned Dcpu16InstrInfo::isStoreToStackSlot(const MachineInstr *MI,
 
 static bool IsIntegerCC(unsigned CC)
 {
-  return  (CC <= SPCC::ICC_VC);
+  return true;
+  // return  (CC <= SPCC::ICC_VC);
 }
 
 
 static SPCC::CondCodes GetOppositeBranchCondition(SPCC::CondCodes CC)
 {
-  switch(CC) {
+  /*switch(CC) {
   case SPCC::ICC_NE:   return SPCC::ICC_E;
   case SPCC::ICC_E:    return SPCC::ICC_NE;
   case SPCC::ICC_G:    return SPCC::ICC_LE;
@@ -108,7 +105,7 @@ static SPCC::CondCodes GetOppositeBranchCondition(SPCC::CondCodes CC)
   case SPCC::FCC_UE:   return SPCC::FCC_LG;
   case SPCC::FCC_NE:   return SPCC::FCC_E;
   case SPCC::FCC_E:    return SPCC::FCC_NE;
-  }
+  }*/
   llvm_unreachable("Invalid cond code");
 }
 
@@ -118,9 +115,9 @@ Dcpu16InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF,
                                          uint64_t Offset,
                                          const MDNode *MDPtr,
                                          DebugLoc dl) const {
-  MachineInstrBuilder MIB = BuildMI(MF, dl, get(DCPU16::DBG_VALUE))
+  /*MachineInstrBuilder MIB = BuildMI(MF, dl, get(DCPU16::DBG_VALUE))
     .addFrameIndex(FrameIx).addImm(0).addImm(Offset).addMetadata(MDPtr);
-  return &*MIB;
+  return &*MIB;*/
 }
 
 
@@ -131,7 +128,7 @@ bool Dcpu16InstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
                                    bool AllowModify) const
 {
 
-  MachineBasicBlock::iterator I = MBB.end();
+  /*MachineBasicBlock::iterator I = MBB.end();
   MachineBasicBlock::iterator UnCondBrIter = MBB.end();
   while (I != MBB.begin()) {
     --I;
@@ -222,7 +219,7 @@ bool Dcpu16InstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
     //FIXME: Handle subsequent conditional branches
     //For now, we can't handle multiple conditional branches
     return true;
-  }
+  }*/
   return false;
 }
 
@@ -231,7 +228,7 @@ Dcpu16InstrInfo::InsertBranch(MachineBasicBlock &MBB,MachineBasicBlock *TBB,
                              MachineBasicBlock *FBB,
                              const SmallVectorImpl<MachineOperand> &Cond,
                              DebugLoc DL) const {
-  assert(TBB && "InsertBranch must not be told to insert a fallthrough");
+  /*assert(TBB && "InsertBranch must not be told to insert a fallthrough");
   assert((Cond.size() == 1 || Cond.size() == 0) &&
          "Dcpu16 branch conditions should have one component!");
 
@@ -252,12 +249,13 @@ Dcpu16InstrInfo::InsertBranch(MachineBasicBlock &MBB,MachineBasicBlock *TBB,
     return 1;
 
   BuildMI(&MBB, DL, get(DCPU16::BA)).addMBB(FBB);
-  return 2;
+  return 2;*/
+  return 0;
 }
 
 unsigned Dcpu16InstrInfo::RemoveBranch(MachineBasicBlock &MBB) const
 {
-  MachineBasicBlock::iterator I = MBB.end();
+  /*MachineBasicBlock::iterator I = MBB.end();
   unsigned Count = 0;
   while (I != MBB.begin()) {
     --I;
@@ -274,21 +272,17 @@ unsigned Dcpu16InstrInfo::RemoveBranch(MachineBasicBlock &MBB) const
     I = MBB.end();
     ++Count;
   }
-  return Count;
+  return Count;*/
+  return 0;
 }
 
+#include <stdio.h>
 void Dcpu16InstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                  MachineBasicBlock::iterator I, DebugLoc DL,
                                  unsigned DestReg, unsigned SrcReg,
                                  bool KillSrc) const {
-  if (DCPU16::IntRegsRegClass.contains(DestReg, SrcReg))
-    BuildMI(MBB, I, DL, get(DCPU16::ORrr), DestReg).addReg(DCPU16::G0)
-      .addReg(SrcReg, getKillRegState(KillSrc));
-  else if (DCPU16::FPRegsRegClass.contains(DestReg, SrcReg))
-    BuildMI(MBB, I, DL, get(DCPU16::FMOVS), DestReg)
-      .addReg(SrcReg, getKillRegState(KillSrc));
-  else if (DCPU16::DFPRegsRegClass.contains(DestReg, SrcReg))
-    BuildMI(MBB, I, DL, get(Subtarget.isV9() ? DCPU16::FMOVD : DCPU16::FpMOVD), DestReg)
+  if (DCPU16::GeneralRegsRegClass.contains(DestReg, SrcReg))
+    BuildMI(MBB, I, DL, get(DCPU16::SETrr), DestReg)
       .addReg(SrcReg, getKillRegState(KillSrc));
   else
     llvm_unreachable("Impossible reg-to-reg copy");
@@ -303,15 +297,9 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   if (I != MBB.end()) DL = I->getDebugLoc();
 
   // On the order of operands here: think "[FrameIdx + 0] = SrcReg".
-  if (RC == DCPU16::IntRegsRegisterClass)
-    BuildMI(MBB, I, DL, get(DCPU16::STri)).addFrameIndex(FI).addImm(0)
+  if (RC == DCPU16::GeneralRegsRegisterClass)
+    BuildMI(MBB, I, DL, get(DCPU16::SETmfr)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
-  else if (RC == DCPU16::FPRegsRegisterClass)
-    BuildMI(MBB, I, DL, get(DCPU16::STFri)).addFrameIndex(FI).addImm(0)
-      .addReg(SrcReg,  getKillRegState(isKill));
-  else if (RC == DCPU16::DFPRegsRegisterClass)
-    BuildMI(MBB, I, DL, get(DCPU16::STDFri)).addFrameIndex(FI).addImm(0)
-      .addReg(SrcReg,  getKillRegState(isKill));
   else
     llvm_unreachable("Can't store this register to stack slot");
 }
@@ -324,19 +312,16 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   DebugLoc DL;
   if (I != MBB.end()) DL = I->getDebugLoc();
 
-  if (RC == DCPU16::IntRegsRegisterClass)
-    BuildMI(MBB, I, DL, get(DCPU16::LDri), DestReg).addFrameIndex(FI).addImm(0);
-  else if (RC == DCPU16::FPRegsRegisterClass)
-    BuildMI(MBB, I, DL, get(DCPU16::LDFri), DestReg).addFrameIndex(FI).addImm(0);
-  else if (RC == DCPU16::DFPRegsRegisterClass)
-    BuildMI(MBB, I, DL, get(DCPU16::LDDFri), DestReg).addFrameIndex(FI).addImm(0);
+  if (RC == DCPU16::GeneralRegsRegisterClass)
+    BuildMI(MBB, I, DL, get(DCPU16::SETrmf), DestReg).addFrameIndex(FI)
+      .addImm(0);
   else
     llvm_unreachable("Can't load this register from stack slot");
 }
 
 unsigned Dcpu16InstrInfo::getGlobalBaseReg(MachineFunction *MF) const
 {
-  Dcpu16MachineFunctionInfo *Dcpu16FI = MF->getInfo<Dcpu16MachineFunctionInfo>();
+  /*Dcpu16MachineFunctionInfo *Dcpu16FI = MF->getInfo<Dcpu16MachineFunctionInfo>();
   unsigned GlobalBaseReg = Dcpu16FI->getGlobalBaseReg();
   if (GlobalBaseReg != 0)
     return GlobalBaseReg;
@@ -353,5 +338,6 @@ unsigned Dcpu16InstrInfo::getGlobalBaseReg(MachineFunction *MF) const
 
   BuildMI(FirstMBB, MBBI, dl, get(DCPU16::GETPCX), GlobalBaseReg);
   Dcpu16FI->setGlobalBaseReg(GlobalBaseReg);
-  return GlobalBaseReg;
+  return GlobalBaseReg;*/
+  return 0;
 }

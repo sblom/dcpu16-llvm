@@ -72,7 +72,7 @@ namespace {
 void Dcpu16AsmPrinter::printOperand(const MachineInstr *MI, int opNum,
                                    raw_ostream &O) {
   const MachineOperand &MO = MI->getOperand (opNum);
-  bool CloseParen = false;
+  /*bool CloseParen = false;
   if (MI->getOpcode() == DCPU16::SETHIi && !MO.isReg() && !MO.isImm()) {
     O << "%hi(";
     CloseParen = true;
@@ -80,7 +80,7 @@ void Dcpu16AsmPrinter::printOperand(const MachineInstr *MI, int opNum,
              !MO.isReg() && !MO.isImm()) {
     O << "%lo(";
     CloseParen = true;
-  }
+  }*/
   switch (MO.getType()) {
   case MachineOperand::MO_Register:
     O << "%" << StringRef(getRegisterName(MO.getReg())).lower();
@@ -105,9 +105,10 @@ void Dcpu16AsmPrinter::printOperand(const MachineInstr *MI, int opNum,
   default:
     llvm_unreachable("<unknown operand type>");
   }
-  if (CloseParen) O << ")";
+  //if (CloseParen) O << ")";
 }
 
+#include <stdio.h>
 void Dcpu16AsmPrinter::printMemOperand(const MachineInstr *MI, int opNum,
                                       raw_ostream &O, const char *Modifier) {
   printOperand(MI, opNum, O);
@@ -119,9 +120,6 @@ void Dcpu16AsmPrinter::printMemOperand(const MachineInstr *MI, int opNum,
     return;
   }
 
-  if (MI->getOperand(opNum+1).isReg() &&
-      MI->getOperand(opNum+1).getReg() == DCPU16::G0)
-    return;   // don't print "+%g0"
   if (MI->getOperand(opNum+1).isImm() &&
       MI->getOperand(opNum+1).getImm() == 0)
     return;   // don't print "+0"
@@ -139,7 +137,7 @@ void Dcpu16AsmPrinter::printMemOperand(const MachineInstr *MI, int opNum,
 
 bool Dcpu16AsmPrinter::printGetPCX(const MachineInstr *MI, unsigned opNum,
                                   raw_ostream &O) {
-  std::string operand = "";
+  /*std::string operand = "";
   const MachineOperand &MO = MI->getOperand(opNum);
   switch (MO.getType()) {
   default: llvm_unreachable("Operand is not a register");
@@ -166,15 +164,15 @@ bool Dcpu16AsmPrinter::printGetPCX(const MachineInstr *MI, unsigned opNum,
   O << "\tor\t" << operand
     << ", %lo(_GLOBAL_OFFSET_TABLE_+(.-.LLGETPCH" << mfNum << '_' << bbNum
     << ")), " << operand << '\n';
-  O << "\tadd\t" << operand << ", %o7, " << operand << '\n';
+  O << "\tadd\t" << operand << ", %o7, " << operand << '\n';*/
 
   return true;
 }
 
 void Dcpu16AsmPrinter::printCCOperand(const MachineInstr *MI, int opNum,
                                      raw_ostream &O) {
-  int CC = (int)MI->getOperand(opNum).getImm();
-  O << DCPU16CondCodeToString((SPCC::CondCodes)CC);
+  /*int CC = (int)MI->getOperand(opNum).getImm();
+  O << DCPU16CondCodeToString((SPCC::CondCodes)CC);*/
 }
 
 /// PrintAsmOperand - Print out an operand for an inline asm expression.
@@ -183,7 +181,7 @@ bool Dcpu16AsmPrinter::PrintAsmOperand(const MachineInstr *MI, unsigned OpNo,
                                       unsigned AsmVariant,
                                       const char *ExtraCode,
                                       raw_ostream &O) {
-  if (ExtraCode && ExtraCode[0]) {
+  /*if (ExtraCode && ExtraCode[0]) {
     if (ExtraCode[1] != 0) return true; // Unknown modifier.
 
     switch (ExtraCode[0]) {
@@ -193,7 +191,7 @@ bool Dcpu16AsmPrinter::PrintAsmOperand(const MachineInstr *MI, unsigned OpNo,
     }
   }
 
-  printOperand(MI, OpNo, O);
+  printOperand(MI, OpNo, O);*/
 
   return false;
 }
@@ -202,12 +200,12 @@ bool Dcpu16AsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
                                             unsigned OpNo, unsigned AsmVariant,
                                             const char *ExtraCode,
                                             raw_ostream &O) {
-  if (ExtraCode && ExtraCode[0])
+  /*if (ExtraCode && ExtraCode[0])
     return true;  // Unknown modifier
 
   O << '[';
   printMemOperand(MI, OpNo, O);
-  O << ']';
+  O << ']';*/
 
   return false;
 }
@@ -221,7 +219,7 @@ bool Dcpu16AsmPrinter::
 isBlockOnlyReachableByFallthrough(const MachineBasicBlock *MBB) const {
   // If this is a landing pad, it isn't a fall through.  If it has no preds,
   // then nothing falls through to it.
-  if (MBB->isLandingPad() || MBB->pred_empty())
+  /*if (MBB->isLandingPad() || MBB->pred_empty())
     return false;
 
   // If there isn't exactly one predecessor, it can't be a fall through.
@@ -233,21 +231,21 @@ isBlockOnlyReachableByFallthrough(const MachineBasicBlock *MBB) const {
   // The predecessor has to be immediately before this block.
   const MachineBasicBlock *Pred = *PI;
 
-  if (!Pred->isLayoutSuccessor(MBB))
+  if (!Pred->isLayoutSuccessor(MBB))*/
     return false;
 
   // Check if the last terminator is an unconditional branch.
-  MachineBasicBlock::const_iterator I = Pred->end();
+  /*MachineBasicBlock::const_iterator I = Pred->end();
   while (I != Pred->begin() && !(--I)->isTerminator())
     ; // Noop
-  return I == Pred->end() || !I->isBarrier();
+  return I == Pred->end() || !I->isBarrier();*/
 }
 
 MachineLocation Dcpu16AsmPrinter::
 getDebugValueLocation(const MachineInstr *MI) const {
-  assert(MI->getNumOperands() == 4 && "Invalid number of operands!");
+  /*assert(MI->getNumOperands() == 4 && "Invalid number of operands!");
   assert(MI->getOperand(0).isReg() && MI->getOperand(1).isImm() &&
-         "Unexpected MachineOperand types");
+         "Unexpected MachineOperand types");*/
   return MachineLocation(MI->getOperand(0).getReg(),
                          MI->getOperand(1).getImm());
 }
@@ -255,5 +253,4 @@ getDebugValueLocation(const MachineInstr *MI) const {
 // Force static initialization.
 extern "C" void LLVMInitializeDcpu16AsmPrinter() {
   RegisterAsmPrinter<Dcpu16AsmPrinter> X(TheDcpu16Target);
-  RegisterAsmPrinter<Dcpu16AsmPrinter> Y(TheDcpu16V9Target);
 }

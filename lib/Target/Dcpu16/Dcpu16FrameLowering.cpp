@@ -36,35 +36,14 @@ void Dcpu16FrameLowering::emitPrologue(MachineFunction &MF) const {
 
   // Get the number of bytes to allocate from the FrameInfo
   int NumBytes = (int) MFI->getStackSize();
+  NumBytes += 8;
 
-  // Emit the correct save instruction based on the number of bytes in
-  // the frame. Minimum stack frame size according to V8 ABI is:
-  //   16 words for register window spill
-  //    1 word for address of returned aggregate-value
-  // +  6 words for passing parameters on the stack
-  // ----------
-  //   23 words * 4 bytes per word = 92 bytes
-  NumBytes += 92;
-
-  // Round up to next doubleword boundary -- a double-word boundary
-  // is required by the ABI.
-  NumBytes = (NumBytes + 7) & ~7;
-  NumBytes = -NumBytes;
-
-  if (NumBytes >= -4096) {
-    BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SAVEri), DCPU16::O6)
-      .addReg(DCPU16::O6).addImm(NumBytes);
-  } else {
-    // Emit this the hard way.  This clobbers G1 which we always know is
-    // available here.
-    unsigned OffHi = (unsigned)NumBytes >> 10U;
-    BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETHIi), DCPU16::G1).addImm(OffHi);
-    // Emit G1 = G1 + I6
-    BuildMI(MBB, MBBI, dl, TII.get(DCPU16::ORri), DCPU16::G1)
-      .addReg(DCPU16::G1).addImm(NumBytes & ((1 << 10)-1));
-    BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SAVErr), DCPU16::O6)
-      .addReg(DCPU16::O6).addReg(DCPU16::G1);
-  }
+  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETmar))
+    .addReg(DCPU16::SP).addImm(-4).addReg(DCPU16::J);
+  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETrr), DCPU16::J)
+    .addReg(DCPU16::SP);
+  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETrma), DCPU16::SP)
+    .addReg(DCPU16::SP).addImm(-NumBytes);
 }
 
 void Dcpu16FrameLowering::emitEpilogue(MachineFunction &MF,
@@ -73,8 +52,9 @@ void Dcpu16FrameLowering::emitEpilogue(MachineFunction &MF,
   const Dcpu16InstrInfo &TII =
     *static_cast<const Dcpu16InstrInfo*>(MF.getTarget().getInstrInfo());
   DebugLoc dl = MBBI->getDebugLoc();
-  assert(MBBI->getOpcode() == DCPU16::RETL &&
-         "Can only put epilog before 'retl' instruction!");
-  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::RESTORErr), DCPU16::G0).addReg(DCPU16::G0)
-    .addReg(DCPU16::G0);
+  assert(MBBI->getOpcode() == DCPU16::RET &&
+         "Can only put epilog before 'ret' instruction!");
+
+  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETrr), DCPU16::SP).addReg(DCPU16::J);
+  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETrma), DCPU16::J).addReg(DCPU16::J).addImm(-4);
 }

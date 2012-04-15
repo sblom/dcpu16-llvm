@@ -30,7 +30,7 @@ using namespace llvm;
 
 Dcpu16RegisterInfo::Dcpu16RegisterInfo(Dcpu16Subtarget &st,
                                      const TargetInstrInfo &tii)
-  : Dcpu16GenRegisterInfo(DCPU16::I7), Subtarget(st), TII(tii) {
+  : Dcpu16GenRegisterInfo(DCPU16::Z), Subtarget(st), TII(tii) {
 }
 
 const uint16_t* Dcpu16RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF)
@@ -42,7 +42,7 @@ const uint16_t* Dcpu16RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF
 BitVector Dcpu16RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   BitVector Reserved(getNumRegs());
   // FIXME: G1 reserved for now for large imm generation by frame code.
-  Reserved.set(DCPU16::G1);
+  /*Reserved.set(DCPU16::G1);
   Reserved.set(DCPU16::G2);
   Reserved.set(DCPU16::G3);
   Reserved.set(DCPU16::G4);
@@ -52,21 +52,21 @@ BitVector Dcpu16RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   Reserved.set(DCPU16::G0);
   Reserved.set(DCPU16::G5);
   Reserved.set(DCPU16::G6);
-  Reserved.set(DCPU16::G7);
+  Reserved.set(DCPU16::G7);*/
   return Reserved;
 }
 
 void Dcpu16RegisterInfo::
 eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator I) const {
-  MachineInstr &MI = *I;
+  /*MachineInstr &MI = *I;
   DebugLoc dl = MI.getDebugLoc();
   int Size = MI.getOperand(0).getImm();
   if (MI.getOpcode() == DCPU16::ADJCALLSTACKDOWN)
     Size = -Size;
   if (Size)
     BuildMI(MBB, I, dl, TII.get(DCPU16::ADDri), DCPU16::O6).addReg(DCPU16::O6).addImm(Size);
-  MBB.erase(I);
+  MBB.erase(I);*/
 }
 
 void
@@ -88,32 +88,20 @@ Dcpu16RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
   MachineFunction &MF = *MI.getParent()->getParent();
   int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex) +
                MI.getOperand(i+1).getImm();
+  Offset -= 8;
 
   // Replace frame index with a frame pointer reference.
-  if (Offset >= -4096 && Offset <= 4095) {
-    // If the offset is small enough to fit in the immediate field, directly
-    // encode it.
-    MI.getOperand(i).ChangeToRegister(DCPU16::I6, false);
-    MI.getOperand(i+1).ChangeToImmediate(Offset);
-  } else {
-    // Otherwise, emit a G1 = SETHI %hi(offset).  FIXME: it would be better to
-    // scavenge a register here instead of reserving G1 all of the time.
-    unsigned OffHi = (unsigned)Offset >> 10U;
-    BuildMI(*MI.getParent(), II, dl, TII.get(DCPU16::SETHIi), DCPU16::G1).addImm(OffHi);
-    // Emit G1 = G1 + I6
-    BuildMI(*MI.getParent(), II, dl, TII.get(DCPU16::ADDrr), DCPU16::G1).addReg(DCPU16::G1)
-      .addReg(DCPU16::I6);
-    // Insert: G1+%lo(offset) into the user.
-    MI.getOperand(i).ChangeToRegister(DCPU16::G1, false);
-    MI.getOperand(i+1).ChangeToImmediate(Offset & ((1 << 10)-1));
-  }
+  // If the offset is small enough to fit in the immediate field, directly
+  // encode it.
+  MI.getOperand(i).ChangeToRegister(DCPU16::J, false);
+  MI.getOperand(i+1).ChangeToImmediate(Offset);
 }
 
 void Dcpu16RegisterInfo::
 processFunctionBeforeFrameFinalized(MachineFunction &MF) const {}
 
 unsigned Dcpu16RegisterInfo::getFrameRegister(const MachineFunction &MF) const {
-  return DCPU16::I6;
+  return DCPU16::SP;
 }
 
 unsigned Dcpu16RegisterInfo::getEHExceptionRegister() const {

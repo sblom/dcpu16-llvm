@@ -39,7 +39,7 @@ static MCInstrInfo *createDcpu16MCInstrInfo() {
 
 static MCRegisterInfo *createDcpu16MCRegisterInfo(StringRef TT) {
   MCRegisterInfo *X = new MCRegisterInfo();
-  InitDcpu16MCRegisterInfo(X, DCPU16::I7);
+  InitDcpu16MCRegisterInfo(X, DCPU16::Z);
   return X;
 }
 
@@ -54,7 +54,7 @@ static MCCodeGenInfo *createDcpu16MCCodeGenInfo(StringRef TT, Reloc::Model RM,
                                                CodeModel::Model CM,
                                                CodeGenOpt::Level OL) {
   MCCodeGenInfo *X = new MCCodeGenInfo();
-  X->InitMCCodeGenInfo(RM, CM, OL);
+  //X->InitMCCodeGenInfo(RM, CM, OL);
   return X;
 }
 

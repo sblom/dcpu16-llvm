@@ -61,15 +61,16 @@ public:
 #include "Dcpu16GenDAGISel.inc"
 
 private:
-  SDNode* getGlobalBaseReg();
+//  SDNode* getGlobalBaseReg();
 };
 }  // end anonymous namespace
 
-SDNode* Dcpu16DAGToDAGISel::getGlobalBaseReg() {
+/*SDNode* Dcpu16DAGToDAGISel::getGlobalBaseReg() {
   unsigned GlobalBaseReg = TM.getInstrInfo()->getGlobalBaseReg(MF);
   return CurDAG->getRegister(GlobalBaseReg, TLI.getPointerTy()).getNode();
-}
+}*/
 
+#include <stdio.h>
 bool Dcpu16DAGToDAGISel::SelectADDRri(SDValue Addr,
                                      SDValue &Base, SDValue &Offset) {
   if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>(Addr)) {
@@ -81,31 +82,6 @@ bool Dcpu16DAGToDAGISel::SelectADDRri(SDValue Addr,
       Addr.getOpcode() == ISD::TargetGlobalAddress)
     return false;  // direct calls.
 
-  if (Addr.getOpcode() == ISD::ADD) {
-    if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Addr.getOperand(1))) {
-      if (isInt<13>(CN->getSExtValue())) {
-        if (FrameIndexSDNode *FIN =
-                dyn_cast<FrameIndexSDNode>(Addr.getOperand(0))) {
-          // Constant offset from frame ref.
-          Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i32);
-        } else {
-          Base = Addr.getOperand(0);
-        }
-        Offset = CurDAG->getTargetConstant(CN->getZExtValue(), MVT::i32);
-        return true;
-      }
-    }
-    if (Addr.getOperand(0).getOpcode() == SPISD::Lo) {
-      Base = Addr.getOperand(1);
-      Offset = Addr.getOperand(0).getOperand(0);
-      return true;
-    }
-    if (Addr.getOperand(1).getOpcode() == SPISD::Lo) {
-      Base = Addr.getOperand(0);
-      Offset = Addr.getOperand(1).getOperand(0);
-      return true;
-    }
-  }
   Base = Addr;
   Offset = CurDAG->getTargetConstant(0, MVT::i32);
   return true;
@@ -117,25 +93,13 @@ bool Dcpu16DAGToDAGISel::SelectADDRrr(SDValue Addr, SDValue &R1, SDValue &R2) {
       Addr.getOpcode() == ISD::TargetGlobalAddress)
     return false;  // direct calls.
 
-  if (Addr.getOpcode() == ISD::ADD) {
-    if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Addr.getOperand(1)))
-      if (isInt<13>(CN->getSExtValue()))
-        return false;  // Let the reg+imm pattern catch this!
-    if (Addr.getOperand(0).getOpcode() == SPISD::Lo ||
-        Addr.getOperand(1).getOpcode() == SPISD::Lo)
-      return false;  // Let the reg+imm pattern catch this!
-    R1 = Addr.getOperand(0);
-    R2 = Addr.getOperand(1);
-    return true;
-  }
-
   R1 = Addr;
-  R2 = CurDAG->getRegister(DCPU16::G0, MVT::i32);
+  R2 = CurDAG->getRegister(DCPU16::SP, MVT::i32);
   return true;
 }
 
 SDNode *Dcpu16DAGToDAGISel::Select(SDNode *N) {
-  DebugLoc dl = N->getDebugLoc();
+  /*DebugLoc dl = N->getDebugLoc();
   if (N->isMachineOpcode())
     return NULL;   // Already selected.
 
@@ -177,7 +141,7 @@ SDNode *Dcpu16DAGToDAGISel::Select(SDNode *N) {
     // The high part is in the Y register.
     return CurDAG->SelectNodeTo(N, DCPU16::RDY, MVT::i32, SDValue(Mul, 1));
   }
-  }
+  }*/
 
   return SelectCode(N);
 }
@@ -189,7 +153,7 @@ bool
 Dcpu16DAGToDAGISel::SelectInlineAsmMemoryOperand(const SDValue &Op,
                                                 char ConstraintCode,
                                                 std::vector<SDValue> &OutOps) {
-  SDValue Op0, Op1;
+  /*SDValue Op0, Op1;
   switch (ConstraintCode) {
   default: return true;
   case 'm':   // memory
@@ -199,7 +163,7 @@ Dcpu16DAGToDAGISel::SelectInlineAsmMemoryOperand(const SDValue &Op,
   }
 
   OutOps.push_back(Op0);
-  OutOps.push_back(Op1);
+  OutOps.push_back(Op1);*/
   return false;
 }
 

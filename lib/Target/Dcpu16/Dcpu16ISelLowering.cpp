@@ -46,7 +46,7 @@ static bool CC_Dcpu16_Assign_SRet(unsigned &ValNo, MVT &ValVT,
   return true;
 }
 
-static bool CC_Dcpu16_Assign_f64(unsigned &ValNo, MVT &ValVT,
+/*static bool CC_Dcpu16_Assign_f64(unsigned &ValNo, MVT &ValVT,
                                 MVT &LocVT, CCValAssign::LocInfo &LocInfo,
                                 ISD::ArgFlagsTy &ArgFlags, CCState &State)
 {
@@ -72,7 +72,7 @@ static bool CC_Dcpu16_Assign_f64(unsigned &ValNo, MVT &ValVT,
                                            State.AllocateStack(4,4),
                                            LocVT, LocInfo));
   return true;
-}
+}*/
 
 #include "Dcpu16GenCallingConv.inc"
 
@@ -93,7 +93,7 @@ Dcpu16TargetLowering::LowerReturn(SDValue Chain,
 		 DAG.getTarget(), RVLocs, *DAG.getContext());
 
   // Analize return values.
-  CCInfo.AnalyzeReturn(Outs, RetCC_Dcpu1632);
+  CCInfo.AnalyzeReturn(Outs, RetCC_Dcpu16);
 
   // If this is the first return lowered for this function, add the regs to the
   // liveout set for the function.
@@ -125,19 +125,19 @@ Dcpu16TargetLowering::LowerReturn(SDValue Chain,
     if (!Reg)
       llvm_unreachable("sret virtual register not created in the entry block");
     SDValue Val = DAG.getCopyFromReg(Chain, dl, Reg, getPointerTy());
-    Chain = DAG.getCopyToReg(Chain, dl, DCPU16::I0, Val, Flag);
+    Chain = DAG.getCopyToReg(Chain, dl, DCPU16::J, Val, Flag);
     Flag = Chain.getValue(1);
     if (MF.getRegInfo().liveout_empty())
-      MF.getRegInfo().addLiveOut(DCPU16::I0);
+      MF.getRegInfo().addLiveOut(DCPU16::J);
     RetAddrOffset = 12; // CallInst + Delay Slot + Unimp
   }
 
-  SDValue RetAddrOffsetNode = DAG.getConstant(RetAddrOffset, MVT::i32);
+  SDValue RetAddrOffsetNode = DAG.getConstant(0, MVT::i32);
 
   if (Flag.getNode())
-    return DAG.getNode(SPISD::RET_FLAG, dl, MVT::Other, Chain,
+    return DAG.getNode(DCPU16ISD::RET_FLAG, dl, MVT::Other, Chain,
                        RetAddrOffsetNode, Flag);
-  return DAG.getNode(SPISD::RET_FLAG, dl, MVT::Other, Chain,
+  return DAG.getNode(DCPU16ISD::RET_FLAG, dl, MVT::Other, Chain,
                      RetAddrOffsetNode);
 }
 
@@ -152,7 +152,6 @@ Dcpu16TargetLowering::LowerFormalArguments(SDValue Chain,
                                           DebugLoc dl, SelectionDAG &DAG,
                                           SmallVectorImpl<SDValue> &InVals)
                                             const {
-
   MachineFunction &MF = DAG.getMachineFunction();
   MachineRegisterInfo &RegInfo = MF.getRegInfo();
   Dcpu16MachineFunctionInfo *FuncInfo = MF.getInfo<Dcpu16MachineFunctionInfo>();
@@ -161,7 +160,7 @@ Dcpu16TargetLowering::LowerFormalArguments(SDValue Chain,
   SmallVector<CCValAssign, 16> ArgLocs;
   CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
 		 getTargetMachine(), ArgLocs, *DAG.getContext());
-  CCInfo.AnalyzeFormalArguments(Ins, CC_Dcpu1632);
+  CCInfo.AnalyzeFormalArguments(Ins, CC_Dcpu16);
 
   const unsigned StackOffset = 92;
 
@@ -180,7 +179,7 @@ Dcpu16TargetLowering::LowerFormalArguments(SDValue Chain,
     }
 
     if (VA.isRegLoc()) {
-      if (VA.needsCustom()) {
+      /*if (VA.needsCustom()) {
         assert(VA.getLocVT() == MVT::f64);
         unsigned VRegHi = RegInfo.createVirtualRegister(&DCPU16::IntRegsRegClass);
         MF.getRegInfo().addLiveIn(VA.getLocReg(), VRegHi);
@@ -207,8 +206,8 @@ Dcpu16TargetLowering::LowerFormalArguments(SDValue Chain,
         WholeValue = DAG.getNode(ISD::BITCAST, dl, MVT::f64, WholeValue);
         InVals.push_back(WholeValue);
         continue;
-      }
-      unsigned VReg = RegInfo.createVirtualRegister(&DCPU16::IntRegsRegClass);
+      }*/
+      unsigned VReg = RegInfo.createVirtualRegister(&DCPU16::GeneralRegsRegClass);
       MF.getRegInfo().addLiveIn(VA.getLocReg(), VReg);
       SDValue Arg = DAG.getCopyFromReg(Chain, dl, VReg, MVT::i32);
       if (VA.getLocVT() == MVT::f32)
@@ -226,7 +225,7 @@ Dcpu16TargetLowering::LowerFormalArguments(SDValue Chain,
 
     unsigned Offset = VA.getLocMemOffset()+StackOffset;
 
-    if (VA.needsCustom()) {
+    /*if (VA.needsCustom()) {
       assert(VA.getValVT() == MVT::f64);
       //If it is double-word aligned, just load.
       if (Offset % 8 == 0) {
@@ -262,7 +261,7 @@ Dcpu16TargetLowering::LowerFormalArguments(SDValue Chain,
       WholeValue = DAG.getNode(ISD::BITCAST, dl, MVT::f64, WholeValue);
       InVals.push_back(WholeValue);
       continue;
-    }
+    }*/
 
     int FI = MF.getFrameInfo()->CreateFixedObject(4,
                                                   Offset,
@@ -292,7 +291,7 @@ Dcpu16TargetLowering::LowerFormalArguments(SDValue Chain,
     Dcpu16MachineFunctionInfo *SFI = MF.getInfo<Dcpu16MachineFunctionInfo>();
     unsigned Reg = SFI->getSRetReturnReg();
     if (!Reg) {
-      Reg = MF.getRegInfo().createVirtualRegister(&DCPU16::IntRegsRegClass);
+      Reg = MF.getRegInfo().createVirtualRegister(&DCPU16::GeneralRegsRegClass);
       SFI->setSRetReturnReg(Reg);
     }
     SDValue Copy = DAG.getCopyToReg(DAG.getEntryNode(), dl, Reg, InVals[0]);
@@ -302,7 +301,7 @@ Dcpu16TargetLowering::LowerFormalArguments(SDValue Chain,
   // Store remaining ArgRegs to the stack if this is a varargs function.
   if (isVarArg) {
     static const uint16_t ArgRegs[] = {
-      DCPU16::I0, DCPU16::I1, DCPU16::I2, DCPU16::I3, DCPU16::I4, DCPU16::I5
+      DCPU16::A
     };
     unsigned NumAllocated = CCInfo.getFirstUnallocated(ArgRegs, 6);
     const uint16_t *CurArgReg = ArgRegs+NumAllocated, *ArgRegEnd = ArgRegs+6;
@@ -320,7 +319,7 @@ Dcpu16TargetLowering::LowerFormalArguments(SDValue Chain,
     std::vector<SDValue> OutChains;
 
     for (; CurArgReg != ArgRegEnd; ++CurArgReg) {
-      unsigned VReg = RegInfo.createVirtualRegister(&DCPU16::IntRegsRegClass);
+      unsigned VReg = RegInfo.createVirtualRegister(&DCPU16::GeneralRegsRegClass);
       MF.getRegInfo().addLiveIn(*CurArgReg, VReg);
       SDValue Arg = DAG.getCopyFromReg(DAG.getRoot(), dl, VReg, MVT::i32);
 
@@ -354,7 +353,7 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                                DebugLoc dl, SelectionDAG &DAG,
                                SmallVectorImpl<SDValue> &InVals) const {
   // Dcpu16 target does not yet support tail call optimization.
-  isTailCall = false;
+  /*isTailCall = false;
 
   // Analyze operands of the call, assigning locations to each operand.
   SmallVector<CCValAssign, 16> ArgLocs;
@@ -580,7 +579,7 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   if (InFlag.getNode())
     Ops.push_back(InFlag);
 
-  Chain = DAG.getNode(SPISD::CALL, dl, NodeTys, &Ops[0], Ops.size());
+  Chain = DAG.getNode(DCPU16ISD::CALL, dl, NodeTys, &Ops[0], Ops.size());
   InFlag = Chain.getValue(1);
 
   Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(ArgsSize, true),
@@ -606,7 +605,7 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                                RVLocs[i].getValVT(), InFlag).getValue(1);
     InFlag = Chain.getValue(2);
     InVals.push_back(Chain.getValue(0));
-  }
+  }*/
 
   return Chain;
 }
@@ -689,12 +688,11 @@ Dcpu16TargetLowering::Dcpu16TargetLowering(TargetMachine &TM)
   : TargetLowering(TM, new TargetLoweringObjectFileELF()) {
 
   // Set up the register classes.
-  addRegisterClass(MVT::i32, DCPU16::IntRegsRegisterClass);
-  addRegisterClass(MVT::f32, DCPU16::FPRegsRegisterClass);
-  addRegisterClass(MVT::f64, DCPU16::DFPRegsRegisterClass);
+  addRegisterClass(MVT::i32, DCPU16::GeneralRegsRegisterClass);
 
+  setOperationAction(ISD::BR_CC,             MVT::Other, Expand);
   // Turn FP extload into load/fextend
-  setLoadExtAction(ISD::EXTLOAD, MVT::f32, Expand);
+  /*setLoadExtAction(ISD::EXTLOAD, MVT::f32, Expand);
   // Dcpu16 doesn't have i1 sign extending load
   setLoadExtAction(ISD::SEXTLOAD, MVT::i1, Promote);
   // Turn FP truncstore into trunc + store.
@@ -803,7 +801,7 @@ Dcpu16TargetLowering::Dcpu16TargetLowering(TargetMachine &TM)
   if (TM.getSubtarget<Dcpu16Subtarget>().isV9())
     setOperationAction(ISD::CTPOP, MVT::i32, Legal);
 
-  setMinFunctionAlignment(2);
+  setMinFunctionAlignment(2);*/
 
   computeRegisterProperties();
 }
@@ -811,20 +809,20 @@ Dcpu16TargetLowering::Dcpu16TargetLowering(TargetMachine &TM)
 const char *Dcpu16TargetLowering::getTargetNodeName(unsigned Opcode) const {
   switch (Opcode) {
   default: return 0;
-  case SPISD::CMPICC:     return "SPISD::CMPICC";
-  case SPISD::CMPFCC:     return "SPISD::CMPFCC";
-  case SPISD::BRICC:      return "SPISD::BRICC";
-  case SPISD::BRFCC:      return "SPISD::BRFCC";
-  case SPISD::SELECT_ICC: return "SPISD::SELECT_ICC";
-  case SPISD::SELECT_FCC: return "SPISD::SELECT_FCC";
-  case SPISD::Hi:         return "SPISD::Hi";
-  case SPISD::Lo:         return "SPISD::Lo";
-  case SPISD::FTOI:       return "SPISD::FTOI";
-  case SPISD::ITOF:       return "SPISD::ITOF";
-  case SPISD::CALL:       return "SPISD::CALL";
-  case SPISD::RET_FLAG:   return "SPISD::RET_FLAG";
-  case SPISD::GLOBAL_BASE_REG: return "SPISD::GLOBAL_BASE_REG";
-  case SPISD::FLUSHW:     return "SPISD::FLUSHW";
+  case DCPU16ISD::CMPICC:     return "DCPU16ISD::CMPICC";
+  case DCPU16ISD::CMPFCC:     return "DCPU16ISD::CMPFCC";
+  case DCPU16ISD::BRICC:      return "DCPU16ISD::BRICC";
+  case DCPU16ISD::BRFCC:      return "DCPU16ISD::BRFCC";
+  case DCPU16ISD::SELECT_ICC: return "DCPU16ISD::SELECT_ICC";
+  case DCPU16ISD::SELECT_FCC: return "DCPU16ISD::SELECT_FCC";
+  case DCPU16ISD::Hi:         return "DCPU16ISD::Hi";
+  case DCPU16ISD::Lo:         return "DCPU16ISD::Lo";
+  case DCPU16ISD::FTOI:       return "DCPU16ISD::FTOI";
+  case DCPU16ISD::ITOF:       return "DCPU16ISD::ITOF";
+  case DCPU16ISD::CALL:       return "DCPU16ISD::CALL";
+  case DCPU16ISD::RET_FLAG:   return "DCPU16ISD::RET_FLAG";
+  case DCPU16ISD::GLOBAL_BASE_REG: return "DCPU16ISD::GLOBAL_BASE_REG";
+  case DCPU16ISD::FLUSHW:     return "DCPU16ISD::FLUSHW";
   }
 }
 
@@ -841,8 +839,8 @@ void Dcpu16TargetLowering::computeMaskedBitsForTargetNode(const SDValue Op,
 
   switch (Op.getOpcode()) {
   default: break;
-  case SPISD::SELECT_ICC:
-  case SPISD::SELECT_FCC:
+  case DCPU16ISD::SELECT_ICC:
+  case DCPU16ISD::SELECT_FCC:
     DAG.ComputeMaskedBits(Op.getOperand(1), KnownZero, KnownOne, Depth+1);
     DAG.ComputeMaskedBits(Op.getOperand(0), KnownZero2, KnownOne2, Depth+1);
     assert((KnownZero & KnownOne) == 0 && "Bits known to be one AND zero?");
@@ -862,10 +860,10 @@ static void LookThroughSetCC(SDValue &LHS, SDValue &RHS,
   if (isa<ConstantSDNode>(RHS) &&
       cast<ConstantSDNode>(RHS)->isNullValue() &&
       CC == ISD::SETNE &&
-      ((LHS.getOpcode() == SPISD::SELECT_ICC &&
-        LHS.getOperand(3).getOpcode() == SPISD::CMPICC) ||
-       (LHS.getOpcode() == SPISD::SELECT_FCC &&
-        LHS.getOperand(3).getOpcode() == SPISD::CMPFCC)) &&
+      ((LHS.getOpcode() == DCPU16ISD::SELECT_ICC &&
+        LHS.getOperand(3).getOpcode() == DCPU16ISD::CMPICC) ||
+       (LHS.getOpcode() == DCPU16ISD::SELECT_FCC &&
+        LHS.getOperand(3).getOpcode() == DCPU16ISD::CMPFCC)) &&
       isa<ConstantSDNode>(LHS.getOperand(0)) &&
       isa<ConstantSDNode>(LHS.getOperand(1)) &&
       cast<ConstantSDNode>(LHS.getOperand(0))->isOne() &&
@@ -883,13 +881,13 @@ SDValue Dcpu16TargetLowering::LowerGlobalAddress(SDValue Op,
   // FIXME there isn't really any debug info here
   DebugLoc dl = Op.getDebugLoc();
   SDValue GA = DAG.getTargetGlobalAddress(GV, dl, MVT::i32);
-  SDValue Hi = DAG.getNode(SPISD::Hi, dl, MVT::i32, GA);
-  SDValue Lo = DAG.getNode(SPISD::Lo, dl, MVT::i32, GA);
+  SDValue Hi = DAG.getNode(DCPU16ISD::Hi, dl, MVT::i32, GA);
+  SDValue Lo = DAG.getNode(DCPU16ISD::Lo, dl, MVT::i32, GA);
 
   if (getTargetMachine().getRelocationModel() != Reloc::PIC_)
     return DAG.getNode(ISD::ADD, dl, MVT::i32, Lo, Hi);
 
-  SDValue GlobalBase = DAG.getNode(SPISD::GLOBAL_BASE_REG, dl,
+  SDValue GlobalBase = DAG.getNode(DCPU16ISD::GLOBAL_BASE_REG, dl,
                                    getPointerTy());
   SDValue RelAddr = DAG.getNode(ISD::ADD, dl, MVT::i32, Lo, Hi);
   SDValue AbsAddr = DAG.getNode(ISD::ADD, dl, MVT::i32,
@@ -905,12 +903,12 @@ SDValue Dcpu16TargetLowering::LowerConstantPool(SDValue Op,
   DebugLoc dl = Op.getDebugLoc();
   const Constant *C = N->getConstVal();
   SDValue CP = DAG.getTargetConstantPool(C, MVT::i32, N->getAlignment());
-  SDValue Hi = DAG.getNode(SPISD::Hi, dl, MVT::i32, CP);
-  SDValue Lo = DAG.getNode(SPISD::Lo, dl, MVT::i32, CP);
+  SDValue Hi = DAG.getNode(DCPU16ISD::Hi, dl, MVT::i32, CP);
+  SDValue Lo = DAG.getNode(DCPU16ISD::Lo, dl, MVT::i32, CP);
   if (getTargetMachine().getRelocationModel() != Reloc::PIC_)
     return DAG.getNode(ISD::ADD, dl, MVT::i32, Lo, Hi);
 
-  SDValue GlobalBase = DAG.getNode(SPISD::GLOBAL_BASE_REG, dl,
+  SDValue GlobalBase = DAG.getNode(DCPU16ISD::GLOBAL_BASE_REG, dl,
                                    getPointerTy());
   SDValue RelAddr = DAG.getNode(ISD::ADD, dl, MVT::i32, Lo, Hi);
   SDValue AbsAddr = DAG.getNode(ISD::ADD, dl, MVT::i32,
@@ -923,7 +921,7 @@ static SDValue LowerFP_TO_SINT(SDValue Op, SelectionDAG &DAG) {
   DebugLoc dl = Op.getDebugLoc();
   // Convert the fp value to integer in an FP register.
   assert(Op.getValueType() == MVT::i32);
-  Op = DAG.getNode(SPISD::FTOI, dl, MVT::f32, Op.getOperand(0));
+  Op = DAG.getNode(DCPU16ISD::FTOI, dl, MVT::f32, Op.getOperand(0));
   return DAG.getNode(ISD::BITCAST, dl, MVT::i32, Op);
 }
 
@@ -932,7 +930,7 @@ static SDValue LowerSINT_TO_FP(SDValue Op, SelectionDAG &DAG) {
   assert(Op.getOperand(0).getValueType() == MVT::i32);
   SDValue Tmp = DAG.getNode(ISD::BITCAST, dl, MVT::f32, Op.getOperand(0));
   // Convert the int value to FP in an FP register.
-  return DAG.getNode(SPISD::ITOF, dl, Op.getValueType(), Tmp);
+  return DAG.getNode(DCPU16ISD::ITOF, dl, Op.getValueType(), Tmp);
 }
 
 static SDValue LowerBR_CC(SDValue Op, SelectionDAG &DAG) {
@@ -955,13 +953,13 @@ static SDValue LowerBR_CC(SDValue Op, SelectionDAG &DAG) {
     VTs.push_back(MVT::i32);
     VTs.push_back(MVT::Glue);
     SDValue Ops[2] = { LHS, RHS };
-    CompareFlag = DAG.getNode(SPISD::CMPICC, dl, VTs, Ops, 2).getValue(1);
+    CompareFlag = DAG.getNode(DCPU16ISD::CMPICC, dl, VTs, Ops, 2).getValue(1);
     if (SPCC == ~0U) SPCC = IntCondCCodeToICC(CC);
-    Opc = SPISD::BRICC;
+    Opc = DCPU16ISD::BRICC;
   } else {
-    CompareFlag = DAG.getNode(SPISD::CMPFCC, dl, MVT::Glue, LHS, RHS);
+    CompareFlag = DAG.getNode(DCPU16ISD::CMPFCC, dl, MVT::Glue, LHS, RHS);
     if (SPCC == ~0U) SPCC = FPCondCCodeToFCC(CC);
-    Opc = SPISD::BRFCC;
+    Opc = DCPU16ISD::BRFCC;
   }
   return DAG.getNode(Opc, dl, MVT::Other, Chain, Dest,
                      DAG.getConstant(SPCC, MVT::i32), CompareFlag);
@@ -986,12 +984,12 @@ static SDValue LowerSELECT_CC(SDValue Op, SelectionDAG &DAG) {
     VTs.push_back(LHS.getValueType());   // subcc returns a value
     VTs.push_back(MVT::Glue);
     SDValue Ops[2] = { LHS, RHS };
-    CompareFlag = DAG.getNode(SPISD::CMPICC, dl, VTs, Ops, 2).getValue(1);
-    Opc = SPISD::SELECT_ICC;
+    CompareFlag = DAG.getNode(DCPU16ISD::CMPICC, dl, VTs, Ops, 2).getValue(1);
+    Opc = DCPU16ISD::SELECT_ICC;
     if (SPCC == ~0U) SPCC = IntCondCCodeToICC(CC);
   } else {
-    CompareFlag = DAG.getNode(SPISD::CMPFCC, dl, MVT::Glue, LHS, RHS);
-    Opc = SPISD::SELECT_FCC;
+    CompareFlag = DAG.getNode(DCPU16ISD::CMPFCC, dl, MVT::Glue, LHS, RHS);
+    Opc = DCPU16ISD::SELECT_FCC;
     if (SPCC == ~0U) SPCC = FPCondCCodeToFCC(CC);
   }
   return DAG.getNode(Opc, dl, TrueVal.getValueType(), TrueVal, FalseVal,
@@ -1008,7 +1006,7 @@ static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
   DebugLoc dl = Op.getDebugLoc();
   SDValue Offset =
     DAG.getNode(ISD::ADD, dl, MVT::i32,
-                DAG.getRegister(DCPU16::I6, MVT::i32),
+                DAG.getRegister(DCPU16::SP, MVT::i32),
                 DAG.getConstant(FuncInfo->getVarArgsFrameOffset(),
                                 MVT::i32));
   const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
@@ -1055,7 +1053,7 @@ static SDValue LowerDYNAMIC_STACKALLOC(SDValue Op, SelectionDAG &DAG) {
   SDValue Size  = Op.getOperand(1);  // Legalize the size.
   DebugLoc dl = Op.getDebugLoc();
 
-  unsigned SPReg = DCPU16::O6;
+  unsigned SPReg = DCPU16::SP;
   SDValue SP = DAG.getCopyFromReg(Chain, dl, SPReg, MVT::i32);
   SDValue NewSP = DAG.getNode(ISD::SUB, dl, MVT::i32, SP, Size); // Value
   Chain = DAG.getCopyToReg(SP.getValue(1), dl, SPReg, NewSP);    // Output chain
@@ -1071,7 +1069,7 @@ static SDValue LowerDYNAMIC_STACKALLOC(SDValue Op, SelectionDAG &DAG) {
 
 static SDValue getFLUSHW(SDValue Op, SelectionDAG &DAG) {
   DebugLoc dl = Op.getDebugLoc();
-  SDValue Chain = DAG.getNode(SPISD::FLUSHW,
+  SDValue Chain = DAG.getNode(DCPU16ISD::FLUSHW,
                               dl, MVT::Other, DAG.getEntryNode());
   return Chain;
 }
@@ -1082,7 +1080,7 @@ static SDValue LowerFRAMEADDR(SDValue Op, SelectionDAG &DAG) {
 
   EVT VT = Op.getValueType();
   DebugLoc dl = Op.getDebugLoc();
-  unsigned FrameReg = DCPU16::I6;
+  unsigned FrameReg = DCPU16::SP;
 
   uint64_t depth = Op.getConstantOperandVal(0);
 
@@ -1113,7 +1111,7 @@ static SDValue LowerRETURNADDR(SDValue Op, SelectionDAG &DAG) {
 
   EVT VT = Op.getValueType();
   DebugLoc dl = Op.getDebugLoc();
-  unsigned RetReg = DCPU16::I7;
+  unsigned RetReg = DCPU16::Z;
 
   uint64_t depth = Op.getConstantOperandVal(0);
 
@@ -1123,7 +1121,7 @@ static SDValue LowerRETURNADDR(SDValue Op, SelectionDAG &DAG) {
   else {
     // flush first to make sure the windowed registers' values are in stack
     SDValue Chain = getFLUSHW(Op, DAG);
-    RetAddr = DAG.getCopyFromReg(Chain, dl, DCPU16::I6, VT);
+    RetAddr = DAG.getCopyFromReg(Chain, dl, DCPU16::SP, VT);
 
     for (uint64_t i = 0; i != depth; ++i) {
       SDValue Ptr = DAG.getNode(ISD::ADD,
@@ -1141,7 +1139,7 @@ static SDValue LowerRETURNADDR(SDValue Op, SelectionDAG &DAG) {
 
 SDValue Dcpu16TargetLowering::
 LowerOperation(SDValue Op, SelectionDAG &DAG) const {
-  switch (Op.getOpcode()) {
+  /*switch (Op.getOpcode()) {
   default: llvm_unreachable("Should not custom lower this!");
   case ISD::RETURNADDR:         return LowerRETURNADDR(Op, DAG);
   case ISD::FRAMEADDR:          return LowerFRAMEADDR(Op, DAG);
@@ -1156,13 +1154,13 @@ LowerOperation(SDValue Op, SelectionDAG &DAG) const {
   case ISD::VASTART:            return LowerVASTART(Op, DAG, *this);
   case ISD::VAARG:              return LowerVAARG(Op, DAG);
   case ISD::DYNAMIC_STACKALLOC: return LowerDYNAMIC_STACKALLOC(Op, DAG);
-  }
+  }*/
 }
 
 MachineBasicBlock *
 Dcpu16TargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
                                                  MachineBasicBlock *BB) const {
-  const TargetInstrInfo &TII = *getTargetMachine().getInstrInfo();
+  /*const TargetInstrInfo &TII = *getTargetMachine().getInstrInfo();
   unsigned BROpcode;
   unsigned CC;
   DebugLoc dl = MI->getDebugLoc();
@@ -1232,7 +1230,8 @@ Dcpu16TargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
     .addReg(MI->getOperand(1).getReg()).addMBB(thisMBB);
 
   MI->eraseFromParent();   // The pseudo instruction is gone now.
-  return BB;
+  return BB; */
+  return NULL;
 }
 
 //===----------------------------------------------------------------------===//
@@ -1256,12 +1255,12 @@ Dcpu16TargetLowering::getConstraintType(const std::string &Constraint) const {
 std::pair<unsigned, const TargetRegisterClass*>
 Dcpu16TargetLowering::getRegForInlineAsmConstraint(const std::string &Constraint,
                                                   EVT VT) const {
-  if (Constraint.size() == 1) {
+  /*if (Constraint.size() == 1) {
     switch (Constraint[0]) {
     case 'r':
       return std::make_pair(0U, DCPU16::IntRegsRegisterClass);
     }
-  }
+  }*/
 
   return TargetLowering::getRegForInlineAsmConstraint(Constraint, VT);
 }

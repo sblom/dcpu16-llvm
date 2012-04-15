@@ -19,7 +19,7 @@
 #include "llvm/Target/TargetLowering.h"
 
 namespace llvm {
-  namespace SPISD {
+  namespace DCPU16ISD {
     enum {
       FIRST_NUMBER = ISD::BUILTIN_OP_END,
       CMPICC,      // Compare two GPR operands, set icc.
