@@ -36,7 +36,6 @@ void Dcpu16FrameLowering::emitPrologue(MachineFunction &MF) const {
 
   // Get the number of bytes to allocate from the FrameInfo
   int NumBytes = (int) MFI->getStackSize();
-  NumBytes += 4;
 
   /*BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETmar))
     .addReg(DCPU16::SP).addImm(-4).addReg(DCPU16::J);*/
@@ -55,7 +54,6 @@ void Dcpu16FrameLowering::emitEpilogue(MachineFunction &MF,
 
   MachineFrameInfo *MFI = MF.getFrameInfo();
   int NumBytes = (int) MFI->getStackSize();
-  NumBytes += 4;
 
   BuildMI(MBB, MBBI, dl, TII.get(DCPU16::ADDrc), DCPU16::SP)
     .addReg(DCPU16::SP).addImm(NumBytes);

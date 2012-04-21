@@ -14,7 +14,7 @@ def MEMri : Operand<i32> {
 }
 
 // Whatever this stuff is
-def SDT_SPRet     : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;
+def SDT_SPRet     : SDTypeProfile<0, 0, []>;
 def retflag       : SDNode<"DCPU16ISD::RET_FLAG", SDT_SPRet,
                            [SDNPHasChain, SDNPOptInGlue]>;
 
@@ -145,17 +145,17 @@ let isBarrier = 1, isBranch = 1, isTerminator = 1 in {
 
 }
 
-def RET: BasicInstruction<(outs), (ins i32imm:$val),
-              "SET %pc [%sp+$val]", [(retflag imm:$val)]> {
+def RET: BasicInstruction<(outs), (ins),
+              "SET %pc POP", [(retflag)]> {
   let isBarrier = 1;
   let isReturn = 1;
   let isTerminator = 1;
 }
 
-def CALL: BasicInstruction<(outs), (ins calltarget:$dst, variable_ops),
-              "SET %pc $dst", []> {
+def JSR: BasicInstruction<(outs), (ins calltarget:$dst, variable_ops),
+              "JSR $dst", []> {
   let isCall = 1;
 }
 
 def : Pat<(call tglobaladdr:$dst),
-          (CALL tglobaladdr:$dst)>;
+          (JSR tglobaladdr:$dst)>;

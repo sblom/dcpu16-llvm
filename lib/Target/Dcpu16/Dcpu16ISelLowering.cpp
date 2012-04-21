@@ -132,13 +132,10 @@ Dcpu16TargetLowering::LowerReturn(SDValue Chain,
     RetAddrOffset = 12; // CallInst + Delay Slot + Unimp
   }
 
-  SDValue RetAddrOffsetNode = DAG.getConstant(RetAddrOffset, MVT::i32);
-
   if (Flag.getNode())
     return DAG.getNode(DCPU16ISD::RET_FLAG, dl, MVT::Other, Chain,
-                       RetAddrOffsetNode, Flag);
-  return DAG.getNode(DCPU16ISD::RET_FLAG, dl, MVT::Other, Chain,
-                     RetAddrOffsetNode);
+                       Flag);
+  return DAG.getNode(DCPU16ISD::RET_FLAG, dl, MVT::Other, Chain);
 }
 
 /// LowerFormalArguments - V8 uses a very simple ABI, where all values are
