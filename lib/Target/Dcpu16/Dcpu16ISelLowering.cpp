@@ -353,13 +353,13 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                                DebugLoc dl, SelectionDAG &DAG,
                                SmallVectorImpl<SDValue> &InVals) const {
   // Dcpu16 target does not yet support tail call optimization.
-  /*isTailCall = false;
+  isTailCall = false;
 
   // Analyze operands of the call, assigning locations to each operand.
   SmallVector<CCValAssign, 16> ArgLocs;
   CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
 		 DAG.getTarget(), ArgLocs, *DAG.getContext());
-  CCInfo.AnalyzeCallOperands(Outs, CC_Dcpu1632);
+  CCInfo.AnalyzeCallOperands(Outs, CC_Dcpu16);
 
   // Get the size of the outgoing arguments stack space requirement.
   unsigned ArgsSize = CCInfo.getNextStackOffset();
@@ -391,7 +391,8 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     ByValArgs.push_back(FIPtr);
   }
 
-  Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, true));
+  /*Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize,
+   * true));*/
 
   SmallVector<std::pair<unsigned, SDValue>, 8> RegsToPass;
   SmallVector<SDValue, 8> MemOpChains;
@@ -412,7 +413,7 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
       Arg = ByValArgs[byvalArgIdx++];
 
     // Promote the value if needed.
-    switch (VA.getLocInfo()) {
+    /*switch (VA.getLocInfo()) {
     default: llvm_unreachable("Unknown loc info!");
     case CCValAssign::Full: break;
     case CCValAssign::SExt:
@@ -427,9 +428,9 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     case CCValAssign::BCvt:
       Arg = DAG.getNode(ISD::BITCAST, dl, VA.getLocVT(), Arg);
       break;
-    }
+    }*/
 
-    if (Flags.isSRet()) {
+    /*if (Flags.isSRet()) {
       assert(VA.needsCustom());
       // store SRet argument in %sp+64
       SDValue StackPtr = DAG.getRegister(DCPU16::O6, MVT::i32);
@@ -440,9 +441,9 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                                          false, false, 0));
       hasStructRetAttr = true;
       continue;
-    }
+    }*/
 
-    if (VA.needsCustom()) {
+    /*if (VA.needsCustom()) {
       assert(VA.getLocVT() == MVT::f64);
 
       if (VA.isMemLoc()) {
@@ -506,36 +507,36 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                                            false, false, 0));
       }
       continue;
-    }
+    }*/
 
     // Arguments that can be passed on register must be kept at
     // RegsToPass vector
     if (VA.isRegLoc()) {
-      if (VA.getLocVT() != MVT::f32) {
+      //if (VA.getLocVT() != MVT::f32) {
         RegsToPass.push_back(std::make_pair(VA.getLocReg(), Arg));
         continue;
-      }
+      /*}
       Arg = DAG.getNode(ISD::BITCAST, dl, MVT::i32, Arg);
       RegsToPass.push_back(std::make_pair(VA.getLocReg(), Arg));
-      continue;
+      continue;*/
     }
 
     assert(VA.isMemLoc());
 
     // Create a store off the stack pointer for this argument.
-    SDValue StackPtr = DAG.getRegister(DCPU16::O6, MVT::i32);
+    /*SDValue StackPtr = DAG.getRegister(DCPU16::O6, MVT::i32);
     SDValue PtrOff = DAG.getIntPtrConstant(VA.getLocMemOffset()+StackOffset);
     PtrOff = DAG.getNode(ISD::ADD, dl, MVT::i32, StackPtr, PtrOff);
     MemOpChains.push_back(DAG.getStore(Chain, dl, Arg, PtrOff,
                                        MachinePointerInfo(),
-                                       false, false, 0));
+                                       false, false, 0));*/
   }
 
 
   // Emit all stores, make sure the occur before any copies into physregs.
-  if (!MemOpChains.empty())
+  /*if (!MemOpChains.empty())
     Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
-                        &MemOpChains[0], MemOpChains.size());
+                        &MemOpChains[0], MemOpChains.size());*/
 
   // Build a sequence of copy-to-reg nodes chained together with token
   // chain and flag operands which copy the outgoing args into registers.
@@ -545,8 +546,8 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   for (unsigned i = 0, e = RegsToPass.size(); i != e; ++i) {
     unsigned Reg = RegsToPass[i].first;
     // Remap I0->I7 -> O0->O7.
-    if (Reg >= DCPU16::I0 && Reg <= DCPU16::I7)
-      Reg = Reg-DCPU16::I0+DCPU16::O0;
+    /*if (Reg >= DCPU16::I0 && Reg <= DCPU16::I7)
+      Reg = Reg-DCPU16::I0+DCPU16::O0;*/
 
     Chain = DAG.getCopyToReg(Chain, dl, Reg, RegsToPass[i].second, InFlag);
     InFlag = Chain.getValue(1);
@@ -571,8 +572,8 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     Ops.push_back(DAG.getTargetConstant(SRetArgSize, MVT::i32));
   for (unsigned i = 0, e = RegsToPass.size(); i != e; ++i) {
     unsigned Reg = RegsToPass[i].first;
-    if (Reg >= DCPU16::I0 && Reg <= DCPU16::I7)
-      Reg = Reg-DCPU16::I0+DCPU16::O0;
+    /*if (Reg >= DCPU16::I0 && Reg <= DCPU16::I7)
+      Reg = Reg-DCPU16::I0+DCPU16::O0;*/
 
     Ops.push_back(DAG.getRegister(Reg, RegsToPass[i].second.getValueType()));
   }
@@ -582,8 +583,8 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   Chain = DAG.getNode(DCPU16ISD::CALL, dl, NodeTys, &Ops[0], Ops.size());
   InFlag = Chain.getValue(1);
 
-  Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(ArgsSize, true),
-                             DAG.getIntPtrConstant(0, true), InFlag);
+  /*Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(ArgsSize, true),
+                             DAG.getIntPtrConstant(0, true), InFlag);*/
   InFlag = Chain.getValue(1);
 
   // Assign locations to each value returned by this call.
@@ -591,21 +592,21 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   CCState RVInfo(CallConv, isVarArg, DAG.getMachineFunction(),
 		 DAG.getTarget(), RVLocs, *DAG.getContext());
 
-  RVInfo.AnalyzeCallResult(Ins, RetCC_Dcpu1632);
+  RVInfo.AnalyzeCallResult(Ins, RetCC_Dcpu16);
 
   // Copy all of the result registers out of their specified physreg.
   for (unsigned i = 0; i != RVLocs.size(); ++i) {
     unsigned Reg = RVLocs[i].getLocReg();
 
     // Remap I0->I7 -> O0->O7.
-    if (Reg >= DCPU16::I0 && Reg <= DCPU16::I7)
-      Reg = Reg-DCPU16::I0+DCPU16::O0;
+    /*if (Reg >= DCPU16::I0 && Reg <= DCPU16::I7)
+      Reg = Reg-DCPU16::I0+DCPU16::O0;*/
 
     Chain = DAG.getCopyFromReg(Chain, dl, Reg,
                                RVLocs[i].getValVT(), InFlag).getValue(1);
     InFlag = Chain.getValue(2);
     InVals.push_back(Chain.getValue(0));
-  }*/
+  }
 
   return Chain;
 }

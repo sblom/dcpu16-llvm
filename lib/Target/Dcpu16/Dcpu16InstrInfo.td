@@ -19,6 +19,11 @@ def retflag       : SDNode<"DCPU16ISD::RET_FLAG", SDT_SPRet,
                            [SDNPHasChain, SDNPOptInGlue]>;
 
 def brtarget : Operand<OtherVT>;
+def calltarget : Operand<i32>;
+def SDT_SPCall    : SDTypeProfile<0, -1, [SDTCisVT<0, i32>]>;
+def call          : SDNode<"DCPU16ISD::CALL", SDT_SPCall,
+                           [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue,
+                            SDNPVariadic]>;
 
 multiclass Math_Instr<string OpcStr, SDNode OpNode> {
   let Constraints = "$arg1 = $dst" in {
@@ -146,3 +151,11 @@ def RET: BasicInstruction<(outs), (ins i32imm:$val),
   let isReturn = 1;
   let isTerminator = 1;
 }
+
+def CALL: BasicInstruction<(outs), (ins calltarget:$dst, variable_ops),
+              "SET %pc $dst", []> {
+  let isCall = 1;
+}
+
+def : Pat<(call tglobaladdr:$dst),
+          (CALL tglobaladdr:$dst)>;
