@@ -362,7 +362,7 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   unsigned ArgsSize = CCInfo.getNextStackOffset();
 
   // Keep stack frames 8-byte aligned.
-  ArgsSize = (ArgsSize+7) & ~7;
+  /*ArgsSize = (ArgsSize+7) & ~7;*/
 
   MachineFrameInfo *MFI = DAG.getMachineFunction().getFrameInfo();
 
@@ -388,13 +388,12 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     ByValArgs.push_back(FIPtr);
   }
 
-  /*Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize,
-   * true));*/
+  Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, true));
 
   SmallVector<std::pair<unsigned, SDValue>, 8> RegsToPass;
   SmallVector<SDValue, 8> MemOpChains;
 
-  const unsigned StackOffset = 92;
+  const unsigned StackOffset = 0;
   bool hasStructRetAttr = false;
   // Walk the register/memloc assignments, inserting copies/loads.
   for (unsigned i = 0, realArgIdx = 0, byvalArgIdx = 0, e = ArgLocs.size();
@@ -521,19 +520,19 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     assert(VA.isMemLoc());
 
     // Create a store off the stack pointer for this argument.
-    /*SDValue StackPtr = DAG.getRegister(DCPU16::O6, MVT::i32);
+    SDValue StackPtr = DAG.getRegister(DCPU16::SP, MVT::i32);
     SDValue PtrOff = DAG.getIntPtrConstant(VA.getLocMemOffset()+StackOffset);
     PtrOff = DAG.getNode(ISD::ADD, dl, MVT::i32, StackPtr, PtrOff);
     MemOpChains.push_back(DAG.getStore(Chain, dl, Arg, PtrOff,
                                        MachinePointerInfo(),
-                                       false, false, 0));*/
+                                       false, false, 0));
   }
 
 
   // Emit all stores, make sure the occur before any copies into physregs.
-  /*if (!MemOpChains.empty())
+  if (!MemOpChains.empty())
     Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
-                        &MemOpChains[0], MemOpChains.size());*/
+                        &MemOpChains[0], MemOpChains.size());
 
   // Build a sequence of copy-to-reg nodes chained together with token
   // chain and flag operands which copy the outgoing args into registers.
@@ -580,8 +579,8 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   Chain = DAG.getNode(DCPU16ISD::CALL, dl, NodeTys, &Ops[0], Ops.size());
   InFlag = Chain.getValue(1);
 
-  /*Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(ArgsSize, true),
-                             DAG.getIntPtrConstant(0, true), InFlag);*/
+  Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(ArgsSize, true),
+                             DAG.getIntPtrConstant(0, true), InFlag);
   InFlag = Chain.getValue(1);
 
   // Assign locations to each value returned by this call.

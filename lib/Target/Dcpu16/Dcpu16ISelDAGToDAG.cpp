@@ -81,6 +81,20 @@ bool Dcpu16DAGToDAGISel::SelectADDRri(SDValue Addr,
       Addr.getOpcode() == ISD::TargetGlobalAddress)
     return false;  // direct calls.
 
+  if (Addr.getOpcode() == ISD::ADD) {
+    if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Addr.getOperand(1))) {
+      if (FrameIndexSDNode *FIN =
+              dyn_cast<FrameIndexSDNode>(Addr.getOperand(0))) {
+        // Constant offset from frame ref.
+        Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i32);
+      } else {
+        Base = Addr.getOperand(0);
+      }
+      Offset = CurDAG->getTargetConstant(CN->getZExtValue(), MVT::i32);
+      return true;
+    }
+  }
+
   Base = Addr;
   Offset = CurDAG->getTargetConstant(0, MVT::i32);
   return true;

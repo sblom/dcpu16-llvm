@@ -27,6 +27,6 @@ def CC_Dcpu16 : CallingConv<[
   // i16 arguments get passed in integer registers if there is space.
   CCIfType<[i32], CCAssignToReg<[X, Y, Z]>>,
 
-  // Alternatively, they are assigned to the stack in 2-byte aligned units.
-  CCAssignToStack<2, 2>
+  // Alternatively, they are assigned to the stack in 4-byte aligned units.
+  CCAssignToStack<4, 4>
 ]>;

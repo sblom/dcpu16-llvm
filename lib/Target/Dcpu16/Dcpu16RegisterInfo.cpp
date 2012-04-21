@@ -59,14 +59,14 @@ BitVector Dcpu16RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
 void Dcpu16RegisterInfo::
 eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator I) const {
-  /*MachineInstr &MI = *I;
+  MachineInstr &MI = *I;
   DebugLoc dl = MI.getDebugLoc();
   int Size = MI.getOperand(0).getImm();
-  if (MI.getOpcode() == DCPU16::ADJCALLSTACKDOWN)
-    Size = -Size;
+   if (MI.getOpcode() == DCPU16::ADJCALLSTACKDOWN)
+     Size = -Size;
   if (Size)
-    BuildMI(MBB, I, dl, TII.get(DCPU16::ADDri), DCPU16::O6).addReg(DCPU16::O6).addImm(Size);
-  MBB.erase(I);*/
+    BuildMI(MBB, I, dl, TII.get(DCPU16::ADDrc), DCPU16::SP).addReg(DCPU16::SP).addImm(Size);
+  MBB.erase(I);
 }
 
 void

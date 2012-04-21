@@ -28,7 +28,7 @@
 using namespace llvm;
 
 Dcpu16InstrInfo::Dcpu16InstrInfo(Dcpu16Subtarget &ST)
-  : Dcpu16GenInstrInfo(/*DCPU16::ADJCALLSTACKDOWN, DCPU16::ADJCALLSTACKUP*/),
+  : Dcpu16GenInstrInfo(DCPU16::ADJCALLSTACKDOWN, DCPU16::ADJCALLSTACKUP),
     RI(ST, *this), Subtarget(ST) {
 }
 
@@ -39,7 +39,7 @@ Dcpu16InstrInfo::Dcpu16InstrInfo(Dcpu16Subtarget &ST)
 /// any side effects other than loading from the stack slot.
 unsigned Dcpu16InstrInfo::isLoadFromStackSlot(const MachineInstr *MI,
                                              int &FrameIndex) const {
-  if (MI->getOpcode() == DCPU16::SETrmf) {
+  if (MI->getOpcode() == DCPU16::SETrm) {
     if (MI->getOperand(1).isFI() && MI->getOperand(2).isImm() &&
         MI->getOperand(2).getImm() == 0) {
       FrameIndex = MI->getOperand(1).getIndex();
@@ -56,7 +56,7 @@ unsigned Dcpu16InstrInfo::isLoadFromStackSlot(const MachineInstr *MI,
 /// any side effects other than storing to the stack slot.
 unsigned Dcpu16InstrInfo::isStoreToStackSlot(const MachineInstr *MI,
                                             int &FrameIndex) const {
-  if (MI->getOpcode() == DCPU16::SETmfr) {
+  if (MI->getOpcode() == DCPU16::SETmr) {
     if (MI->getOperand(0).isFI() && MI->getOperand(1).isImm() &&
         MI->getOperand(1).getImm() == 0) {
       FrameIndex = MI->getOperand(0).getIndex();
@@ -283,11 +283,8 @@ void Dcpu16InstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                  MachineBasicBlock::iterator I, DebugLoc DL,
                                  unsigned DestReg, unsigned SrcReg,
                                  bool KillSrc) const {
-  if (DCPU16::GeneralRegsRegClass.contains(DestReg, SrcReg))
-    BuildMI(MBB, I, DL, get(DCPU16::SETrr), DestReg)
-      .addReg(SrcReg, getKillRegState(KillSrc));
-  else
-    llvm_unreachable("Impossible reg-to-reg copy");
+  BuildMI(MBB, I, DL, get(DCPU16::SETrr), DestReg)
+    .addReg(SrcReg, getKillRegState(KillSrc));
 }
 
 void Dcpu16InstrInfo::
@@ -300,7 +297,7 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 
   // On the order of operands here: think "[FrameIdx + 0] = SrcReg".
   if (RC == DCPU16::GeneralRegsRegisterClass)
-    BuildMI(MBB, I, DL, get(DCPU16::SETmfr)).addFrameIndex(FI).addImm(0)
+    BuildMI(MBB, I, DL, get(DCPU16::SETmr)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   else
     llvm_unreachable("Can't store this register to stack slot");
@@ -315,7 +312,7 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   if (I != MBB.end()) DL = I->getDebugLoc();
 
   if (RC == DCPU16::GeneralRegsRegisterClass)
-    BuildMI(MBB, I, DL, get(DCPU16::SETrmf), DestReg).addFrameIndex(FI)
+    BuildMI(MBB, I, DL, get(DCPU16::SETrm), DestReg).addFrameIndex(FI)
       .addImm(0);
   else
     llvm_unreachable("Can't load this register from stack slot");
