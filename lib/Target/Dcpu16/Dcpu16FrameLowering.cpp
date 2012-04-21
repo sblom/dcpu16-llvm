@@ -36,13 +36,11 @@ void Dcpu16FrameLowering::emitPrologue(MachineFunction &MF) const {
 
   // Get the number of bytes to allocate from the FrameInfo
   int NumBytes = (int) MFI->getStackSize();
-  NumBytes += 8;
+  NumBytes += 4;
 
-  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETmar))
-    .addReg(DCPU16::SP).addImm(-4).addReg(DCPU16::J);
-  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETrr), DCPU16::J)
-    .addReg(DCPU16::SP);
-  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETrma), DCPU16::SP)
+  /*BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETmar))
+    .addReg(DCPU16::SP).addImm(-4).addReg(DCPU16::J);*/
+  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::ADDrc), DCPU16::SP)
     .addReg(DCPU16::SP).addImm(-NumBytes);
 }
 
@@ -55,6 +53,11 @@ void Dcpu16FrameLowering::emitEpilogue(MachineFunction &MF,
   assert(MBBI->getOpcode() == DCPU16::RET &&
          "Can only put epilog before 'ret' instruction!");
 
-  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETrr), DCPU16::SP).addReg(DCPU16::J);
-  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETrma), DCPU16::J).addReg(DCPU16::J).addImm(-4);
+  MachineFrameInfo *MFI = MF.getFrameInfo();
+  int NumBytes = (int) MFI->getStackSize();
+  NumBytes += 4;
+
+  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::ADDrc), DCPU16::SP)
+    .addReg(DCPU16::SP).addImm(NumBytes);
+  //BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETrma), DCPU16::J).addReg(DCPU16::J).addImm(-4);
 }

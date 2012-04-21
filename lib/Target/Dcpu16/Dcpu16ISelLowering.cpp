@@ -117,7 +117,7 @@ Dcpu16TargetLowering::LowerReturn(SDValue Chain,
     Flag = Chain.getValue(1);
   }
 
-  unsigned RetAddrOffset = 8; //Call Inst + Delay Slot
+  unsigned RetAddrOffset = -4; //Call Inst + Delay Slot
   // If the function returns a struct, copy the SRetReturnReg to I0
   if (MF.getFunction()->hasStructRetAttr()) {
     Dcpu16MachineFunctionInfo *SFI = MF.getInfo<Dcpu16MachineFunctionInfo>();
@@ -132,7 +132,7 @@ Dcpu16TargetLowering::LowerReturn(SDValue Chain,
     RetAddrOffset = 12; // CallInst + Delay Slot + Unimp
   }
 
-  SDValue RetAddrOffsetNode = DAG.getConstant(0, MVT::i32);
+  SDValue RetAddrOffsetNode = DAG.getConstant(RetAddrOffset, MVT::i32);
 
   if (Flag.getNode())
     return DAG.getNode(DCPU16ISD::RET_FLAG, dl, MVT::Other, Chain,

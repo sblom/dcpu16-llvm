@@ -70,7 +70,6 @@ private:
   return CurDAG->getRegister(GlobalBaseReg, TLI.getPointerTy()).getNode();
 }*/
 
-#include <stdio.h>
 bool Dcpu16DAGToDAGISel::SelectADDRri(SDValue Addr,
                                      SDValue &Base, SDValue &Offset) {
   if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>(Addr)) {

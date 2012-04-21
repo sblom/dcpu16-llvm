@@ -128,7 +128,7 @@ bool Dcpu16InstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
                                    bool AllowModify) const
 {
 
-  /*MachineBasicBlock::iterator I = MBB.end();
+  MachineBasicBlock::iterator I = MBB.end();
   MachineBasicBlock::iterator UnCondBrIter = MBB.end();
   while (I != MBB.begin()) {
     --I;
@@ -145,7 +145,7 @@ bool Dcpu16InstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
       return true;
 
     //Handle Unconditional branches
-    if (I->getOpcode() == DCPU16::BA) {
+    if (I->getOpcode() == DCPU16::BR) {
       UnCondBrIter = I;
 
       if (!AllowModify) {
@@ -171,11 +171,13 @@ bool Dcpu16InstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
       continue;
     }
 
-    unsigned Opcode = I->getOpcode();
+    /*unsigned Opcode = I->getOpcode();
     if (Opcode != DCPU16::BCOND && Opcode != DCPU16::FBCOND)
-      return true; //Unknown Opcode
+      return true; //Unknown Opcode*/
 
-    SPCC::CondCodes BranchCode = (SPCC::CondCodes)I->getOperand(1).getImm();
+    // TODO(jfrikker): Need to implement this, + InsertBranch and RemoveBranch,
+    // if we want to allow it to do a better job reordering basic blocks.
+    /*SPCC::CondCodes BranchCode = (SPCC::CondCodes)I->getOperand(1).getImm();
 
     if (Cond.empty()) {
       MachineBasicBlock *TargetBB = I->getOperand(0).getMBB();
@@ -215,11 +217,11 @@ bool Dcpu16InstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
       TBB = I->getOperand(0).getMBB();
       Cond.push_back(MachineOperand::CreateImm(BranchCode));
       continue;
-    }
+    }*/
     //FIXME: Handle subsequent conditional branches
     //For now, we can't handle multiple conditional branches
     return true;
-  }*/
+  }
   return false;
 }
 

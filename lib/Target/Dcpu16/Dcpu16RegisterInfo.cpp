@@ -86,14 +86,15 @@ Dcpu16RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
   // Addressable stack objects are accessed using neg. offsets from %fp
   MachineFunction &MF = *MI.getParent()->getParent();
-  int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex) +
+  MachineFrameInfo *MFI = MF.getFrameInfo();
+  int Offset = MFI->getStackSize() +
+               MFI->getObjectOffset(FrameIndex) +
                MI.getOperand(i+1).getImm();
-  Offset -= 8;
 
   // Replace frame index with a frame pointer reference.
   // If the offset is small enough to fit in the immediate field, directly
   // encode it.
-  MI.getOperand(i).ChangeToRegister(DCPU16::J, false);
+  MI.getOperand(i).ChangeToRegister(DCPU16::SP, false);
   MI.getOperand(i+1).ChangeToImmediate(Offset);
 }
 

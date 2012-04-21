@@ -51,41 +51,51 @@ multiclass Math_Instr<string OpcStr, SDNode OpNode> {
   }
 }
 
-multiclass Cond_Branch_Instr<string OpcStr, PatFrag OpNode> {
-  let isBarrier = 1, isBranch = 1 in {
+multiclass Cond_Branch_Instr<string OpcStr, CondCode CCNode> {
+  let isBranch = 1, isTerminator = 1 in {
     // register - register
     def rr : BasicInstruction<(outs ), (ins GeneralRegs:$arg1, GeneralRegs:$arg2, brtarget:$b),
                           !strconcat(OpcStr, " $arg1, $arg2\n\tSET %pc $b"),
-                          [(brcond (OpNode GeneralRegs:$arg1, GeneralRegs:$arg2), bb:$b)]>;
+                          [(brcond (setcc GeneralRegs:$arg1, GeneralRegs:$arg2, CCNode), bb:$b)]>;
 
     // register - constant
     def rc : BasicInstruction<(outs ), (ins GeneralRegs:$arg1, i32imm:$arg2, brtarget:$b),
                           !strconcat(OpcStr, " $arg1, $arg2\n\tSET %pc $b"),
-                          [(brcond (OpNode GeneralRegs:$arg1, imm:$arg2), bb:$b)]>;
+                          [(brcond (setcc GeneralRegs:$arg1, imm:$arg2, CCNode), bb:$b)]>;
 
     // register - memory location
     def rmc : BasicInstruction<(outs ), (ins GeneralRegs:$arg1, i32imm:$arg2, brtarget:$b),
                           !strconcat(OpcStr, " $arg1, [$arg2]\n\tSET %pc $b"),
-                          [(brcond (OpNode GeneralRegs:$arg1, (load imm:$arg2)), bb:$b)]>;
+                          [(brcond (setcc GeneralRegs:$arg1, (load imm:$arg2), CCNode), bb:$b)]>;
 
     // register - frame location
     def rmf : BasicInstruction<(outs ), (ins GeneralRegs:$arg1, MEMri:$arg2, brtarget:$b),
                           !strconcat(OpcStr, " $arg1, [$arg2]\n\tSET %pc $b"),
-                          [(brcond (OpNode GeneralRegs:$arg1, (load ADDRri:$arg2)), bb:$b)]>;
+                          [(brcond (setcc GeneralRegs:$arg1, (load ADDRri:$arg2), CCNode), bb:$b)]>;
 
     // frame location - constant
     def mfc : BasicInstruction<(outs ), (ins MEMri:$arg1, i32imm:$arg2, brtarget:$b),
                           !strconcat(OpcStr, " [$arg1], $arg2\n\tSET %pc $b"),
-                          [(brcond (OpNode (load ADDRri:$arg1), imm:$arg2), bb:$b)]>;
+                          [(brcond (setcc (load ADDRri:$arg1), imm:$arg2, CCNode), bb:$b)]>;
   }
+
+  /*def test : BasicInstruction<(outs $dst), (ins MEMri:$arg1, i32imm:$arg2, brtarget:$b),
+                        !strconcat(OpcStr, " [$arg1], $arg2\n\tSET %pc $b"),
+                        [(set GeneralRegs:$dst (select (setcc (load ADDRri:$arg1), imm:$arg2, CCNode), bb:$b)]>;*/
 
 }
 
 defm ADD : Math_Instr<"ADD", add>;
 defm SUB : Math_Instr<"SUB", sub>;
 defm MUL : Math_Instr<"MUL", mul>;
+defm DIV : Math_Instr<"DIV", udiv>;
+defm AND : Math_Instr<"AND", and>;
+defm BOR : Math_Instr<"BOR", or>;
+defm XOR : Math_Instr<"XOR", xor>;
 
-defm BEQ : Cond_Branch_Instr<"IFE", seteq>;
+defm BEQ : Cond_Branch_Instr<"IFE", SETEQ>;
+defm BGT : Cond_Branch_Instr<"IFG", SETGT>;
+defm BNE : Cond_Branch_Instr<"IFN", SETNE>;
 
 def SETrr : BasicInstruction<(outs GeneralRegs:$dst), (ins GeneralRegs:$arg1),
                   "SET $dst, $arg1",
@@ -123,7 +133,7 @@ def SETmar : BasicInstruction<(outs ), (ins GeneralRegs:$dst1, i32imm:$dst2, Gen
                   "SET [$dst1+$dst2], $arg1",
                   []>;
 
-let isBarrier = 1, isBranch = 1 in {
+let isBarrier = 1, isBranch = 1, isTerminator = 1 in {
   def BR : BasicInstruction<(outs), (ins brtarget:$dst),
                             "SET %pc $dst",
                             [(br bb:$dst)]>;
