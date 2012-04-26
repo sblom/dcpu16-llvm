@@ -159,8 +159,6 @@ Dcpu16TargetLowering::LowerFormalArguments(SDValue Chain,
 		 getTargetMachine(), ArgLocs, *DAG.getContext());
   CCInfo.AnalyzeFormalArguments(Ins, CC_Dcpu16);
 
-  const unsigned StackOffset = 92;
-
   for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
     CCValAssign &VA = ArgLocs[i];
 
@@ -220,7 +218,7 @@ Dcpu16TargetLowering::LowerFormalArguments(SDValue Chain,
 
     assert(VA.isMemLoc());
 
-    unsigned Offset = VA.getLocMemOffset()+StackOffset;
+    unsigned Offset = VA.getLocMemOffset();
 
     /*if (VA.needsCustom()) {
       assert(VA.getValVT() == MVT::f64);
@@ -303,12 +301,12 @@ Dcpu16TargetLowering::LowerFormalArguments(SDValue Chain,
     unsigned NumAllocated = CCInfo.getFirstUnallocated(ArgRegs, 6);
     const uint16_t *CurArgReg = ArgRegs+NumAllocated, *ArgRegEnd = ArgRegs+6;
     unsigned ArgOffset = CCInfo.getNextStackOffset();
-    if (NumAllocated == 6)
+    /*if (NumAllocated == 6)
       ArgOffset += StackOffset;
     else {
       assert(!ArgOffset);
       ArgOffset = 68+4*NumAllocated;
-    }
+    }*/
 
     // Remember the vararg offset for the va_start implementation.
     FuncInfo->setVarArgsFrameOffset(ArgOffset);
@@ -393,7 +391,6 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   SmallVector<std::pair<unsigned, SDValue>, 8> RegsToPass;
   SmallVector<SDValue, 8> MemOpChains;
 
-  const unsigned StackOffset = 0;
   bool hasStructRetAttr = false;
   // Walk the register/memloc assignments, inserting copies/loads.
   for (unsigned i = 0, realArgIdx = 0, byvalArgIdx = 0, e = ArgLocs.size();
@@ -521,7 +518,7 @@ Dcpu16TargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
     // Create a store off the stack pointer for this argument.
     SDValue StackPtr = DAG.getRegister(DCPU16::SP, MVT::i32);
-    SDValue PtrOff = DAG.getIntPtrConstant(VA.getLocMemOffset()+StackOffset);
+    SDValue PtrOff = DAG.getIntPtrConstant(VA.getLocMemOffset());
     PtrOff = DAG.getNode(ISD::ADD, dl, MVT::i32, StackPtr, PtrOff);
     MemOpChains.push_back(DAG.getStore(Chain, dl, Arg, PtrOff,
                                        MachinePointerInfo(),
@@ -693,11 +690,11 @@ Dcpu16TargetLowering::Dcpu16TargetLowering(TargetMachine &TM)
   // Dcpu16 doesn't have i1 sign extending load
   setLoadExtAction(ISD::SEXTLOAD, MVT::i1, Promote);
   // Turn FP truncstore into trunc + store.
-  setTruncStoreAction(MVT::f64, MVT::f32, Expand);
+  setTruncStoreAction(MVT::f64, MVT::f32, Expand);*/
 
   // Custom legalize GlobalAddress nodes into LO/HI parts.
   setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
-  setOperationAction(ISD::GlobalTLSAddress, MVT::i32, Custom);
+  /*setOperationAction(ISD::GlobalTLSAddress, MVT::i32, Custom);
   setOperationAction(ISD::ConstantPool , MVT::i32, Custom);
 
   // Dcpu16 doesn't have sext_inreg, replace them with shl/sra
@@ -878,6 +875,7 @@ SDValue Dcpu16TargetLowering::LowerGlobalAddress(SDValue Op,
   // FIXME there isn't really any debug info here
   DebugLoc dl = Op.getDebugLoc();
   SDValue GA = DAG.getTargetGlobalAddress(GV, dl, MVT::i32);
+  return GA;
   SDValue Hi = DAG.getNode(DCPU16ISD::Hi, dl, MVT::i32, GA);
   SDValue Lo = DAG.getNode(DCPU16ISD::Lo, dl, MVT::i32, GA);
 
@@ -1136,7 +1134,7 @@ static SDValue LowerRETURNADDR(SDValue Op, SelectionDAG &DAG) {
 
 SDValue Dcpu16TargetLowering::
 LowerOperation(SDValue Op, SelectionDAG &DAG) const {
-  /*switch (Op.getOpcode()) {
+  switch (Op.getOpcode()) {
   default: llvm_unreachable("Should not custom lower this!");
   case ISD::RETURNADDR:         return LowerRETURNADDR(Op, DAG);
   case ISD::FRAMEADDR:          return LowerFRAMEADDR(Op, DAG);
@@ -1151,7 +1149,7 @@ LowerOperation(SDValue Op, SelectionDAG &DAG) const {
   case ISD::VASTART:            return LowerVASTART(Op, DAG, *this);
   case ISD::VAARG:              return LowerVAARG(Op, DAG);
   case ISD::DYNAMIC_STACKALLOC: return LowerDYNAMIC_STACKALLOC(Op, DAG);
-  }*/
+  }
 }
 
 MachineBasicBlock *

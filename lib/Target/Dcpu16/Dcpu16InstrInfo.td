@@ -94,6 +94,10 @@ def SETrm : BasicInstruction<(outs GeneralRegs:$dst), (ins MEMri:$arg1),
                   "SET $dst, [$arg1]",
                   [(set GeneralRegs:$dst, (load ADDRri:$arg1))]>;
 
+def SETrg : BasicInstruction<(outs GeneralRegs:$dst), (ins i32imm:$arg1),
+                  "SET $dst, [$arg1]",
+                  [(set GeneralRegs:$dst, (load tglobaladdr:$arg1))]>;
+
 def SETmr : BasicInstruction<(outs ), (ins MEMri:$dst, GeneralRegs:$arg1),
                   "SET [$dst], $arg1",
                   [(store GeneralRegs:$arg1, ADDRri:$dst)]>;
@@ -101,6 +105,14 @@ def SETmr : BasicInstruction<(outs ), (ins MEMri:$dst, GeneralRegs:$arg1),
 def SETmc : BasicInstruction<(outs ), (ins MEMri:$dst, i32imm:$arg1),
                   "SET [$dst], $arg1",
                   [(store imm:$arg1, ADDRri:$dst)]>;
+
+def SETgr : BasicInstruction<(outs ), (ins i32imm:$dst, GeneralRegs:$arg1),
+                  "SET [$dst], $arg1",
+                  [(store GeneralRegs:$arg1, tglobaladdr:$dst)]>;
+
+def SETgc : BasicInstruction<(outs ), (ins i32imm:$dst, i32imm:$arg1),
+                  "SET [$dst], $arg1",
+                  [(store imm:$arg1, tglobaladdr:$dst)]>;
 
 def BR : BasicInstruction<(outs), (ins brtarget:$dst),
                           "SET %pc $dst",
@@ -127,6 +139,8 @@ def JSR: BasicInstruction<(outs), (ins calltarget:$dst, variable_ops),
 
 def : Pat<(call tglobaladdr:$dst),
           (JSR tglobaladdr:$dst)>;
+def : Pat<(call texternalsym:$dst),
+          (JSR texternalsym:$dst)>;
 
 let Defs = [SP], Uses = [SP] in {
   def ADJCALLSTACKDOWN : Pseudo<(outs), (ins i32imm:$amt),

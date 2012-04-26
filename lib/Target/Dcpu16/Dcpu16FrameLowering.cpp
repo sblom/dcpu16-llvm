@@ -39,8 +39,10 @@ void Dcpu16FrameLowering::emitPrologue(MachineFunction &MF) const {
 
   /*BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETmar))
     .addReg(DCPU16::SP).addImm(-4).addReg(DCPU16::J);*/
-  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::ADDrc), DCPU16::SP)
-    .addReg(DCPU16::SP).addImm(-NumBytes);
+  if (NumBytes > 0) {
+    BuildMI(MBB, MBBI, dl, TII.get(DCPU16::ADDrc), DCPU16::SP)
+      .addReg(DCPU16::SP).addImm(-NumBytes);
+  }
 }
 
 void Dcpu16FrameLowering::emitEpilogue(MachineFunction &MF,
@@ -55,7 +57,9 @@ void Dcpu16FrameLowering::emitEpilogue(MachineFunction &MF,
   MachineFrameInfo *MFI = MF.getFrameInfo();
   int NumBytes = (int) MFI->getStackSize();
 
-  BuildMI(MBB, MBBI, dl, TII.get(DCPU16::ADDrc), DCPU16::SP)
-    .addReg(DCPU16::SP).addImm(NumBytes);
+  if (NumBytes > 0) {
+    BuildMI(MBB, MBBI, dl, TII.get(DCPU16::ADDrc), DCPU16::SP)
+      .addReg(DCPU16::SP).addImm(NumBytes);
+  }
   //BuildMI(MBB, MBBI, dl, TII.get(DCPU16::SETrma), DCPU16::J).addReg(DCPU16::J).addImm(-4);
 }
